@@ -38,6 +38,7 @@
     <h1>Listado de Clientes</h1>
 
     <a href="crear.php" class="btn-agregar">➕ Agregar Cliente</a>
+    <input type="text" id="buscador" placeholder="Buscar por nombre, documento o teléfono..." style="display:block; margin: 0 auto 20px auto; padding: 10px; width: 300px;">
 
     <table>
         <thead>
@@ -48,7 +49,9 @@
                 <th>Teléfono</th>
                 <th>Ciudad</th>
                 <th>Dirección</th>
+                <th>Observaciones</th>
                 <th>Acciones</th>
+                
             </tr>
         </thead>
         <tbody>
@@ -66,6 +69,7 @@
                     <td><?= $row['telefono'] ?></td>
                     <td><?= $row['ciudad'] ?></td>
                     <td><?= $row['direccion'] ?></td>
+                    <td><?= $row['observaciones'] ?></td>
                     <td class="acciones">
                         <a href="editar.php?id=<?= $row['id_cliente'] ?>">✏️ Editar</a>
                         <a href="../eliminar.php?id=<?= $row['id_cliente'] ?>" onclick="return confirm('¿Seguro que deseas eliminar este cliente?')">🗑️ Eliminar</a>
@@ -81,6 +85,19 @@
             ?>
         </tbody>
     </table>
+    <script>
+        const buscador = document.getElementById('buscador');
+        const filas = document.querySelectorAll('table tbody tr');
+
+        buscador.addEventListener('input', function () {
+            const valor = this.value.toLowerCase();
+
+            filas.forEach(fila => {
+                const textoFila = fila.innerText.toLowerCase();
+                fila.style.display = textoFila.includes(valor) ? '' : 'none';
+            });
+        });
+    </script>
 
 </body>
 </html>

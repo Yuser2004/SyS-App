@@ -1,0 +1,5 @@
+git add .
+git commit -m "Descripción clara del cambio"
+git push
+
+(PARA PODER HACER CAMBIOS EN EL GIT)
