@@ -30,7 +30,7 @@ $resultado = $conn->query("
             <td><?= $row['nombre_completo'] ?></td>
             <td>
                 <a href="editar.php?id=<?= $row['id_vehiculo'] ?>">✏️ Editar</a>
-                <a href="eliminar.php?id=<?= $row['id_vehiculo'] ?>" onclick="return confirm('¿Seguro que deseas eliminar este vehículo?')">🗑️ Eliminar</a>
+                <a href="../eliminar.php?id=<?= $row['id_vehiculo'] ?>" onclick="return confirm('¿Seguro que deseas eliminar este vehículo?')">🗑️ Eliminar</a>
             </td>
         </tr>
         <?php endwhile; ?>

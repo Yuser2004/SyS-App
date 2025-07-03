@@ -4,34 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Lista de Clientes</title>
-    <style>
-        table {
-            border-collapse: collapse;
-            width: 90%;
-            margin: 20px auto;
-        }
-        th, td {
-            border: 1px solid #ccc;
-            padding: 10px;
-            text-align: left;
-        }
-        h1 {
-            text-align: center;
-        }
-        .btn-agregar {
-            display: block;
-            width: fit-content;
-            margin: 0 auto 20px auto;
-            text-decoration: none;
-            background-color: #28a745;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-        }
-        .acciones a {
-            margin-right: 10px;
-        }
-    </style>
 </head>
 <body>
 
