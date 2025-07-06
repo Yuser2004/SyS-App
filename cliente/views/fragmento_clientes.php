@@ -1,6 +1,6 @@
 <div class="members"><?php include __DIR__ . '/../models/conexion.php'; ?>
 
-    <a href="cliente/views/crear.php" class="btn-agregar">➕ Agregar Cliente</a>
+    <a href="#" class="btnfos btnfos-3" onclick="cargarContenido('cliente/views/fragmento_crear.php'); return false;">Crear Cliente</a> 
     <input type="text" id="buscador" placeholder="Buscar por nombre, documento o teléfono...">
 
     <table role="grid">
@@ -27,8 +27,8 @@
                     <td><input type="text" value="<?= htmlspecialchars($row['documento']) ?>" readonly></td>
                     <td><input type="text" value="<?= htmlspecialchars($row['telefono']) ?>" readonly></td>
                     <td class="acciones">
-                        <a href="#" onclick="editarCliente(<?= $row['id_cliente'] ?>); return false;">✏️ Editar</a>
-                        <a href="#" onclick="eliminarCliente(<?= $row['id_cliente'] ?>); return false;">🗑️ Eliminar</a>
+                        <a href="#"class="btnfos btnfos-3"  onclick="editarCliente(<?= $row['id_cliente'] ?>); return false;">Editar</a>
+                        <a href="#" class="btnfos btnfos-3" onclick="eliminarCliente(<?= $row['id_cliente'] ?>); return false;">Eliminar</a>
                     </td>
                 </tr>
             <?php endwhile; else: ?>
