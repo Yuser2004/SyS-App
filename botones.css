@@ -1,0 +1,123 @@
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: row;
+    background-color: #939393;
+    font-family: 'Nunito', sans-serif;
+}
+/* Lista y elementos */
+ul {
+    padding: 10;
+    list-style-type: none;
+    margin: 0;
+    background-color: #ffffff;
+      position: relative;
+  z-index: 2; /* alto para que quede por encima */
+}
+
+li {
+    font-size: 25px;
+    width: 8em;
+    height: 2em;
+    color: #0000007e;
+    border-left: 0.08em solid;
+    position: relative;
+    margin-top: 0.8em;
+    cursor: pointer;
+}
+
+/* Efecto de 3 palitos */
+li::before,
+li::after {
+    content: '';
+    position: absolute;
+    width: inherit;
+    border-left: inherit;
+    z-index: -1;
+}
+
+li::before {
+    height: 80%;
+    top: 10%;
+    left: calc(-0.15em - 0.08em * 2);
+    filter: brightness(0.8);
+}
+
+li::after {
+    height: 60%;
+    top: 20%;
+    left: calc(-0.15em * 2 - 0.08em * 3);
+    filter: brightness(0.6);
+}
+
+li span {
+    position: relative;
+    height: 120%;
+    top: -10%;
+    box-sizing: border-box;
+    border: 0.08em solid;
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: capitalize;
+    transform: translateX(calc(-0.15em * 3 - 0.08em * 2));
+    transition: 0.3s;
+}
+
+li:hover span {
+    transform: translateX(0.15em);
+}
+
+/* Contenido dinámico */
+.cuerpo {
+  border-radius: 6px;
+  padding: 1rem;
+  overflow-y: hidden;
+  width: 60%;
+}
+.contenedor-del-contenedor {
+    border: 2px solid black;
+    width: 250px;
+    height: 400px;
+    max-height: 500px;
+    max-width: 300px;
+    background-color: #ffffff;
+    
+}
+@media screen and (max-width: 768px) {
+  body {
+    flex-direction: column;
+  }
+
+  .contenedor-del-contenedor {
+    width: 100%;
+    height: auto;
+    border: none;
+    border-bottom: 2px solid black;
+  }
+
+  .cuerpo {
+        width: 100%;
+
+    padding: 0.5rem;
+    height: auto;
+  }
+
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  li {
+    margin: 0.5rem;
+    width: auto;
+  }
+
+  li span {
+    flex-direction: row;
+    font-size: 16px;
+  }
+}

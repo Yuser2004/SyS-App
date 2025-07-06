@@ -1,3 +1,6 @@
+cd /c/xampp/htdocs/SyS-app
+
+
 git add .
 git commit -m "Descripción clara del cambio"
 git push

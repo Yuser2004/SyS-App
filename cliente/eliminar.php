@@ -9,15 +9,14 @@ if (isset($_GET['id'])) {
     $stmt->bind_param("i", $id);
 
     if ($stmt->execute()) {
-        header("Location: views/index.php");
-        exit;
+        echo "ok";
     } else {
-        echo "Error al eliminar cliente: " . $stmt->error;
+        echo "error: " . $stmt->error;
     }
 
     $stmt->close();
 } else {
-    echo "ID de cliente no especificado.";
+    echo "error: ID no especificado";
 }
 
 $conn->close();

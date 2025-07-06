@@ -69,7 +69,7 @@ $cliente = $resultado->fetch_assoc();
             }
 
             if (!soloNumeros.test(telefono) || telefono.length !== 10) {
-                errores.push("El teléfono debe contener exactamente 10 dígitos.");
+                errores.push("El teléfono debe contener exactamente 10 dígitos numericos.");
             }
 
             if (!soloLetras.test(ciudad)) {
