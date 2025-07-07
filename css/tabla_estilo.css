@@ -309,3 +309,11 @@ h1 {
   -webkit-transition: all 250ms linear;
           transition: all 250ms linear;
 }
+.titulo_lista {
+  display: flex;
+  justify-content: center; /* Centra horizontalmente */
+  align-items: center;     /* (opcional) Centra verticalmente si das altura */
+  color: #000;
+  margin-top: 0;           /* Por si había espacio extra */
+  padding: 10px 0;         /* Espacio vertical */
+}

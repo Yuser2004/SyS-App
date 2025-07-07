@@ -11,16 +11,21 @@ git push
 SyS-app/
 │
 ├── index.php            
-│
+├── cliente.png            
+├── coche.png            
+├── hogar.png            
 ├── cliente/
+│   ├── models/
+│   │   └── conexion.php
 │   ├── guardar.php   
+│   ├── actualizar.php   
+│   ├── eliminar.php   
 │   ├── verificar_documento.php 
-│   ├── eliminar.php  
 │   ├── public/
 │   │   └── css/
 │   │       └── estilos_form.css 
-│   ├── models/
-│   │   └── conexion.php     
+│   │        js/
+│   │       └── buscador.js      
 │   └── views/
 │       ├── fragmento_clientes.php 
 │       ├── fragmento_crear.php     
@@ -40,4 +45,7 @@ SyS-app/
 │       ├── fragmento_crear.php    
 │       ├── lista_vehiculos.php    
 │
-└── assets/                 
+└── css/     
+    ├── estilos_form.css    
+    ├── tabla_estilo.css             
+    ├── botones.css             

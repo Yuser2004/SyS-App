@@ -75,7 +75,7 @@ li:hover span {
   border-radius: 6px;
   padding: 1rem;
   overflow-y: hidden;
-  width: 60%;
+  width: 75%;
 }
 .contenedor-del-contenedor {
     border: 2px solid black;
@@ -99,7 +99,7 @@ li:hover span {
   }
 
   .cuerpo {
-        width: 100%;
+    width: 80vh;
 
     padding: 0.5rem;
     height: auto;

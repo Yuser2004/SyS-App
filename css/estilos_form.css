@@ -73,3 +73,39 @@
 .login-form .btn:hover {
   background-color: #2980b9;
 }
+/* Resultados del autocompletado - visual estilo <select> */
+.resultado-autocompletar {
+    position: absolute;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+    max-height: 220px;
+    overflow-y: auto;
+    z-index: 999;
+    margin-top: 4px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    font-family: 'Nunito', sans-serif;
+    padding: 0;
+}
+
+.resultado-autocompletar .item {
+    padding: 10px 14px;
+    font-size: 15px;
+    border-bottom: 1px solid #e6e6e6;
+    background-color: #fff;
+    color: #333;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+/* Última opción sin borde */
+.resultado-autocompletar .item:last-child {
+    border-bottom: none;
+}
+
+/* Hover - estilo select */
+.resultado-autocompletar .item:hover {
+    background-color: #f0f8ff;
+    color: #000;
+}

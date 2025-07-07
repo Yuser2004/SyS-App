@@ -1,10 +1,14 @@
 <div class="members"><?php include __DIR__ . '/../models/conexion.php'; ?>
 
     <a href="#" class="btnfos btnfos-3" onclick="cargarContenido('cliente/views/fragmento_crear.php'); return false;">Crear Cliente</a> 
+            <h2 class="titulo_lista">
+                    LISTA DE CLIENTES
+            </h2>
     <input type="text" id="buscador" placeholder="Buscar por nombre, documento o teléfono...">
 
     <table role="grid">
         <thead>
+
             <tr>
                 <th></th>
                 <th>Nombre Completo</th>
@@ -29,6 +33,7 @@
                     <td class="acciones">
                         <a href="#"class="btnfos btnfos-3"  onclick="editarCliente(<?= $row['id_cliente'] ?>); return false;">Editar</a>
                         <a href="#" class="btnfos btnfos-3" onclick="eliminarCliente(<?= $row['id_cliente'] ?>); return false;">Eliminar</a>
+                        <a href="#" class="btnfos btnfos-3" onclick="cargarContenido('vehiculo/views/fragmento_crear.php?id_cliente=<?= $row['id_cliente'] ?>&origen=clientes'); return false;">Nuevo Vehículo</a>
                     </td>
                 </tr>
             <?php endwhile; else: ?>

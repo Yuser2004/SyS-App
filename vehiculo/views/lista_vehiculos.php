@@ -13,6 +13,9 @@
     <link rel="stylesheet" href="css/tabla_estilo.css">
 
     <a href="#" class="btnfos btnfos-3" onclick="cargarContenido('vehiculo/views/fragmento_crear.php'); return false;">Registrar Vehículo</a> 
+    <h2 class="titulo_lista">
+        LISTA DE VEHICULOS
+    </h2>
     <input type="text" id="buscador" placeholder="Buscar por placa o cliente...">
 
     <table role="grid">
