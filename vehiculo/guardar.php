@@ -1,5 +1,5 @@
 <?php
-include 'models/conexion.php';
+include __DIR__ . '/models/conexion.php';
 
 $placa = strtoupper(trim($_POST['placa']));
 $id_cliente = intval($_POST['id_cliente']);
@@ -22,22 +22,16 @@ if ($verificar->num_rows > 0) {
 }
 
 if (!empty($errores)) {
-    foreach ($errores as $error) {
-        echo "<p style='color:red;'>$error</p>";
-    }
-    echo "<a href='views/crear.php'>← Volver al formulario</a>";
+    echo $errores[0]; // solo devuelve el primero (puedes unir todos si prefieres)
     $conn->close();
     exit;
 }
 
 // Insertar si todo está bien
 $sql = "INSERT INTO vehiculo (placa, id_cliente) VALUES ('$placa', $id_cliente)";
-
 if ($conn->query($sql)) {
-    header("Location: views/index.php");
+    echo "ok";
 } else {
     echo "Error al guardar: " . $conn->error;
 }
-
 $conn->close();
-?>

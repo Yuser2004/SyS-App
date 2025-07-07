@@ -50,6 +50,6 @@ $clientes = $conn->query("SELECT id_cliente, nombre_completo FROM clientes");
         <button type="submit">Actualizar</button>
     </form>
     <br>
-    <a href="index.php">← Volver</a>
+    <a onclick="cargarContenido('vehiculo/views/lista_vehiculos.php')">← Volver</a>
 </body>
 </html>

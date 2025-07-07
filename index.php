@@ -21,7 +21,7 @@
                 </span>
                 </li>
                 <li>
-                    <span>
+                    <span onclick="cargarContenido('vehiculo/views/lista_vehiculos.php')">
                         <img src="coche.png" alt="Automoviles" style="width: 40px; height: 40px; margin-right: 8px; vertical-align: middle;">Vehiculos
                     </span>
                 </li>

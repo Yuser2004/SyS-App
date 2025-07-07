@@ -6,3 +6,38 @@ git commit -m "Descripción clara del cambio"
 git push
 
 (PARA PODER HACER CAMBIOS EN EL GIT)
+
+
+SyS-app/
+│
+├── index.php            
+│
+├── cliente/
+│   ├── guardar.php   
+│   ├── verificar_documento.php 
+│   ├── eliminar.php  
+│   ├── public/
+│   │   └── css/
+│   │       └── estilos_form.css 
+│   ├── models/
+│   │   └── conexion.php     
+│   └── views/
+│       ├── fragmento_clientes.php 
+│       ├── fragmento_crear.php     
+│       ├── fragmento_editar.php   
+│
+├── vehiculo/
+│   ├── guardar.php        
+│   ├── eliminar.php         
+│   ├── actualizar.php         
+│   ├── public/
+│   │   └── css/
+│   │       └── estilos_form.css  
+│   ├── models/
+│   │   └── conexion.php    
+│   └── views/
+│       ├── fragmento_editar.php 
+│       ├── fragmento_crear.php    
+│       ├── lista_vehiculos.php    
+│
+└── assets/                 

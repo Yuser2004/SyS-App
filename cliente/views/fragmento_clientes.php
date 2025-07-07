@@ -22,7 +22,7 @@
                 while ($row = $result->fetch_assoc()):
             ?>
                 <tr class="visible">
-                    <td><img src="https://assets.codepen.io/605876/cropped-headshot--saturated-low-res.jpg" alt="avatar"/></td>
+                    <td><img width="50" height="30" src="https://img.icons8.com/ios-filled/50/user-male-circle.png" alt="user-male-circle"/></td>
                     <td><input type="text" value="<?= htmlspecialchars($row['nombre_completo']) ?>" readonly></td>
                     <td><input type="text" value="<?= htmlspecialchars($row['documento']) ?>" readonly></td>
                     <td><input type="text" value="<?= htmlspecialchars($row['telefono']) ?>" readonly></td>

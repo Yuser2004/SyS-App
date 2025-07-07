@@ -1,0 +1,311 @@
+@import url('https://unpkg.com/normalize.css') layer(normalize);
+
+@layer normalize, base, demo;
+
+@layer demo {
+  :root {
+    --accent: hsl(200 80% 50%);
+    --border: color-mix(in oklch, canvas, canvasText 15%);
+    --background: color-mix(in oklch, canvas, canvasText 2%);
+    --head: light-dark(hsl(0 0% 98%), canvas);
+    --selected: color-mix(in oklch, var(--accent), canvas 85%);
+    --color: color-mix(in hsl, canvasText, #0000 50%);
+    --hover-background: light-dark(hsl(0 0% 92%), hsl(0 0% 10%));
+    --sibling-hover: red;
+    --hover-color: green;
+  }
+  .members {
+    height: 80vh; /* ← Fijo */
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: light-dark(#fff, #000);
+    box-sizing: border-box;
+  }
+
+      
+        /* Animación suave para ocultar filas */
+        tr.oculto {
+            opacity: 0;
+            display: none;/* !important; */
+            height: 0;
+            overflow: hidden;
+            pointer-events: none;
+            transition: opacity 0.3s ease, height 0.3s ease;
+        }
+
+        tr.visible {
+            opacity: 1;
+            height: auto;
+            pointer-events: auto;
+            transition: opacity 0.3s ease, height 0.3s ease;
+            display: table-row;
+        }
+
+        /* Hacer que el buscador quede fijo dentro del contenedor scroll */
+        #buscador {
+            display: block;
+            margin: 0 auto 20px auto;
+            padding: 10px;
+            width: 300px;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: inherit;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+  table {
+    
+    font-size: 0.875rem;
+    border-collapse: collapse;
+    background: #0000;
+    color: var(--color);
+  }
+  input {
+    color: var(--color);
+  }
+  table:focus-within tbody tr:not(:focus-within) {
+    filter: blur(4px) saturate(0.2);
+    pointer-events: none;
+    opacity: 0.5;
+  }
+  tr:focus-within {
+    background: var(--selected);
+    td,
+    input {
+      color: canvasText;
+    }
+  }
+  thead {
+    background: var(--head);
+  }
+  th,
+  td:first-of-type {
+    padding: 0.25rem 1rem;
+  }
+  :is(td, th) {
+    height: 40px;
+  }
+  td {
+    font-weight: 300;
+  }
+  tr {
+    transition-property: filter, background, opacity;
+    transition-duration: 0.2s;
+    transition-timing-function: ease-out;
+
+    &:not(:last-of-type) {
+      border-bottom: 1px solid var(--head);
+    }
+  }
+
+  table :is(td, th) {
+    white-space: nowrap;
+    font-weight: 400;
+    font-size: 0.875rem;
+  }
+  table th {
+    text-align: left;
+    font-weight: 500;
+    color: color-mix(in hsl, canvasText, #0000 35%);
+  }
+  thead {
+    background: var(--head);
+  }
+
+  td:not(:has(input)) {
+    padding: 0.5rem 1rem;
+  }
+
+  tr:focus-within input:hover:not(:focus-visible) {
+    background: color-mix(in oklch, var(--accent), #0000 75%);
+  }
+
+  table input {
+    font-size: inherit;
+    height: 40px;
+    font-weight: inherit;
+    border: 0;
+    padding: 0.5rem 1rem;
+    height: 100%;
+    background: #0000;
+    border-radius: 0;
+    caret-color: var(--accent);
+    transition: color 0.26s ease-out;
+
+    &:hover:not(:focus-visible) {
+      background: var(--hover-background);
+    }
+    &::selection {
+      background: var(--accent);
+      color: white;
+    }
+    &:focus-visible {
+      background: light-dark(#fff, #000);
+      outline: 2px solid var(--accent);
+    }
+  }
+
+  input:not(:focus, :focus-visible) {
+    cursor: pointer;
+  }
+  table img {
+    border-radius: 50%;
+    width: 24px;
+    aspect-ratio: 1;
+  }
+}
+
+@layer base {
+  :root {
+    --font-size-min: 16;
+    --font-size-max: 20;
+    --font-ratio-min: 1.2;
+    --font-ratio-max: 1.33;
+    --font-width-min: 375;
+    --font-width-max: 1500;
+  }
+
+  html {
+    color-scheme: light dark;
+  }
+
+  [data-theme='light'] {
+    color-scheme: light only;
+  }
+
+  [data-theme='dark'] {
+    color-scheme: dark only;
+  }
+
+  :where(.fluid) {
+    --fluid-min: calc(
+      var(--font-size-min) * pow(var(--font-ratio-min), var(--font-level, 0))
+    );
+    --fluid-max: calc(
+      var(--font-size-max) * pow(var(--font-ratio-max), var(--font-level, 0))
+    );
+    --fluid-preferred: calc(
+      (var(--fluid-max) - var(--fluid-min)) /
+        (var(--font-width-max) - var(--font-width-min))
+    );
+    --fluid-type: clamp(
+      (var(--fluid-min) / 16) * 1rem,
+      ((var(--fluid-min) / 16) * 1rem) -
+        (((var(--fluid-preferred) * var(--font-width-min)) / 16) * 1rem) +
+        (var(--fluid-preferred) * var(--variable-unit, 100vi)),
+      (var(--fluid-max) / 16) * 1rem
+    );
+    font-size: var(--fluid-type);
+  }
+
+  *,
+  *:after,
+  *:before {
+    box-sizing: border-box;
+  }
+
+  body {
+    background: light-dark(#fff, #000);
+    display: grid;
+    place-items: center;
+    min-height: 100vh;
+    font-family: 'SF Pro Text', 'SF Pro Icons', 'AOS Icons', 'Helvetica Neue',
+      Helvetica, Arial, sans-serif, system-ui;
+  }
+
+  body::before {
+    --size: 45px;
+    --line: color-mix(in hsl, canvasText, transparent 80%);
+    content: '';
+    height: 100vh;
+    width: 100vw;
+    position: fixed;
+    background: linear-gradient(
+          90deg,
+          var(--line) 1px,
+          transparent 1px var(--size)
+        )
+        calc(var(--size) * 0.36) 50% / var(--size) var(--size),
+      linear-gradient(var(--line) 1px, transparent 1px var(--size)) 0%
+        calc(var(--size) * 0.32) / var(--size) var(--size);
+    mask: linear-gradient(-20deg, transparent 50%, white);
+    top: 0;
+    transform-style: flat;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .bear-link {
+    color: canvasText;
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    width: 48px;
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    opacity: 0.8;
+  }
+
+  :where(.x-link, .bear-link):is(:hover, :focus-visible) {
+    opacity: 1;
+  }
+
+  .bear-link svg {
+    width: 75%;
+  }
+
+  /* Utilities */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  font-family: monospace;
+  opacity: .5;
+}
+
+.btnfos-3 {
+  text-decoration: none;
+  background: #ffffff;
+  box-shadow: 0px 2px 0 rgb(16, 16, 16), 2px 4px 6px #000000;
+  font-weight: 900;
+  letter-spacing: 1px;
+  transition: all 150ms linear;
+  width: 120px;         /* Puedes ajustar este valor */
+  height: 40px;         /* Puedes ajustar este valor */
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  border-radius: 10px;
+  color: #000000;
+}
+
+.btnfos-3:hover {
+  background: #000000;
+  box-shadow: 1px 1px 2px rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  text-decoration: none;
+  text-shadow: -1px -1px 0 #136a65;
+  -webkit-transition: all 250ms linear;
+          transition: all 250ms linear;
+}
