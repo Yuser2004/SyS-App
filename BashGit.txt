@@ -9,11 +9,26 @@ git push
 
 
 SyS-app/
-│
-├── index.php            
-├── cliente.png            
-├── coche.png            
-├── hogar.png            
+           
+├── asesor/
+│   ├── models/
+│   │   └── conexion.php
+│   ├── views/
+│   │   └── crear_asesor.php
+│   │   └── editar_asesor.php
+│   │   └── lista_asesor.php
+│   ├── actualizar_asesor.php
+│   ├── eliminar_asesor.php
+│   ├── guardar_asesor.php
+├── sedes/
+│   ├── models/
+│   │   └── conexion.php
+│   ├── views/
+│   │   └── crear_sede.php
+│   │   └── lista_sedes.php
+│   ├── actualizar_sede.php
+│   ├── eliminar_sede.php
+│   ├── guardar_sede.php
 ├── cliente/
 │   ├── models/
 │   │   └── conexion.php
@@ -46,6 +61,10 @@ SyS-app/
 │       ├── lista_vehiculos.php    
 │
 └── css/     
-    ├── estilos_form.css    
-    ├── tabla_estilo.css             
-    ├── botones.css             
+│    ├── estilos_form.css    
+│    ├── tabla_estilo.css             
+│    ├── botones.css             
+├── index.php            
+├── cliente.png            
+├── coche.png            
+├── hogar.png 

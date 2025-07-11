@@ -14,7 +14,6 @@ $stmt->bind_param("si", $placa, $id);
 $stmt->execute();
 $stmt->bind_result($total);
 $stmt->fetch();
-file_put_contents("log_placa.txt", "Placa: $placa | ID: $id | Total: $total\n", FILE_APPEND);
 $stmt->close();
 
 if ($total > 0) {

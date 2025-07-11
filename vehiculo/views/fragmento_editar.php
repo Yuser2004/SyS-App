@@ -18,11 +18,11 @@ $vehiculo = $conn->query("SELECT * FROM vehiculo WHERE id_vehiculo = $id")->fetc
         </div>
 
         <div class="form-input-material" style="position: relative;">
-            <input type="text" id="buscador_cliente" placeholder="Buscar cliente por nombre o documento..." autocomplete="off"
-                value="<?php
-                    $cliente = $conn->query("SELECT nombre_completo FROM clientes WHERE id_cliente = {$vehiculo['id_cliente']}")->fetch_assoc();
-                    echo htmlspecialchars($cliente['nombre_completo'] ?? '');
-                ?>">
+                <input type="text" id="buscador_cliente" placeholder="Buscar cliente por nombre o documento..." autocomplete="off"
+                    value="<?php
+                        $cliente = $conn->query("SELECT nombre_completo FROM clientes WHERE id_cliente = {$vehiculo['id_cliente']}")->fetch_assoc();
+                        echo htmlspecialchars($cliente['nombre_completo'] ?? '');
+                    ?>">
             <input type="hidden" id="id_cliente" name="id_cliente" value="<?= $vehiculo['id_cliente'] ?>" required>
             <div id="resultados_cliente" class="resultado-autocompletar"></div>
             <label for="buscador_cliente">Cliente</label>

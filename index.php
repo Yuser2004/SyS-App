@@ -25,8 +25,14 @@
                         <img src="coche.png" alt="Automoviles" style="width: 40px; height: 40px; margin-right: 8px; vertical-align: middle;">Vehiculos
                     </span>
                 </li>
-                <li><span>XXXXX</span></li>
-                <li><span>XXXXX</span></li>
+                <li>
+                    <span onclick="cargarContenido('sedes/views/lista_sedes.php')">
+                        <img src="hogar.png" alt="Sedes" style="width: 40px; height: 40px; margin-right: 8px; vertical-align: middle;">Sedes
+                    </span>
+                </li>
+                <li onclick="cargarContenido('asesor/views/lista_asesor.php')">
+                    <span>👤 Asesores</span>
+                </li>
                 <li><span>XXXXX</span></li>
             </ul>
         </div>
