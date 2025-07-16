@@ -7,26 +7,31 @@
     position: relative;
     overflow: hidden;
     border-radius: 0 0 85% 85% / 30%;
+    height: 250px;              /* ✅ Altura base necesaria */
+    transition: all 0.4s ease;  /* ✅ Transición para suavizar el cambio */
 }
 
 .hero-header .overlay {
     width: 100%;
     height: 100%;
-    padding: 50px;
+    padding: 5px;
     color: #FFF;
     text-shadow: 1px 1px 1px #333;
-    background-image: linear-gradient(135deg, #9f05ff69 10%, #fd5e086b 100%);
+    background: url('../fondo_inicio.png') no-repeat center center;
+    transition: all 0.3s ease;
 }
 
 .hero-title {
     font-family: 'Dancing Script', cursive;
-    font-size: 80px;
-    margin-bottom: 30px;
+    font-size: 55px;
+    margin-bottom: 10px;
+    transition: font-size 0.3s ease, margin 0.3s ease;
 }
 
 .hero-subtitle, .hero-text {
     font-family: 'Open Sans', sans-serif;
-    margin-bottom: 30px;
+    margin-bottom: 10px;
+    transition: opacity 0.3s ease;
 }
 
 .hero-button {
@@ -43,4 +48,25 @@
 .hero-button:hover {
     cursor: pointer;
     transform: scale(1.05);
+}
+
+/* --- Modo reducido con scroll --- */
+.hero-header.shrink {
+    border-radius: 0;
+    height: 100px; /* o el tamaño reducido que prefieras */
+}
+
+.hero-header.shrink .overlay {
+    padding: 10px;
+}
+
+.hero-header.shrink .hero-title {
+    font-size: 24px;
+    margin-bottom: 0;
+}
+
+.hero-header.shrink .hero-subtitle,
+.hero-header.shrink .hero-text,
+.hero-header.shrink .hero-button {
+    display: none;
 }

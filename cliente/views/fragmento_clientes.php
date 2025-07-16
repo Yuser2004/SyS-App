@@ -1,12 +1,23 @@
 <div class="members"><?php include __DIR__ . '/../models/conexion.php'; ?>
 
-    <a href="#" class="btnfos btnfos-3" onclick="cargarContenido('cliente/views/fragmento_crear.php'); return false;">Crear Cliente</a> 
+<a href="#" class="btnfos btnfos-3" onclick="cargarContenido('cliente/views/fragmento_crear.php'); return false;" title="Nuevo cliente">
+    <img src="nuevo_cliente.png" alt="Nuevo cliente" style="width: 40px; height: 40px;">
+</a>
+
             <h2 class="titulo_lista">
                     LISTA DE CLIENTES
             </h2>
     <input type="text" id="buscador" placeholder="Buscar por nombre, documento o teléfono...">
 
     <table role="grid">
+        <colgroup>
+        <col style="width: 40px;">  <!-- Solo para el ícono -->
+        <col style="width: auto;">
+        <col style="width: auto;">
+        <col style="width: auto;">
+        <col style="width: 180px;"> <!-- Acciones con botones -->
+        </colgroup>
+
         <thead>
 
             <tr>
@@ -31,9 +42,15 @@
                     <td><input type="text" value="<?= htmlspecialchars($row['documento']) ?>" readonly></td>
                     <td><input type="text" value="<?= htmlspecialchars($row['telefono']) ?>" readonly></td>
                     <td class="acciones">
-                        <a href="#"class="btnfos btnfos-3"  onclick="editarCliente(<?= $row['id_cliente'] ?>); return false;">Editar</a>
-                        <a href="#" class="btnfos btnfos-3" onclick="eliminarCliente(<?= $row['id_cliente'] ?>); return false;">Eliminar</a>
-                        <a href="#" class="btnfos btnfos-3" onclick="cargarContenido('vehiculo/views/fragmento_crear.php?id_cliente=<?= $row['id_cliente'] ?>&origen=clientes'); return false;">Nuevo Vehículo</a>
+                        <a href="#" class="btnfos btnfos-3" title="Editar cliente" onclick="editarCliente(<?= $row['id_cliente'] ?>); return false;">
+                            <img src="editar.png" alt="Editar" style="width: 40px; height: 40px;">
+                        </a>
+                        <a href="#" class="btnfos btnfos-3" title="Eliminar cliente" onclick="eliminarCliente(<?= $row['id_cliente'] ?>); return false;">
+                            <img src="eliminar.png" alt="Eliminar" style="width: 40px; height: 40px;">
+                        </a>
+                        <a href="#" class="btnfos btnfos-3" title="Nuevo vehículo" onclick="cargarContenido('vehiculo/views/fragmento_crear.php?id_cliente=<?= $row['id_cliente'] ?>&origen=clientes'); return false;">
+                            <img src="nuevovehiculo.png" alt="Nuevo vehículo" style="width: 40px; height: 40px;">
+                        </a>
                     </td>
                 </tr>
             <?php endwhile; else: ?>

@@ -11,14 +11,21 @@
     $resultado = $conn->query($sql);
     ?>
     <link rel="stylesheet" href="css/tabla_estilo.css">
-
-    <a href="#" class="btnfos btnfos-3" onclick="cargarContenido('vehiculo/views/fragmento_crear.php'); return false;">Registrar Vehículo</a> 
+    <a href="#" class="btnfos btnfos-3" title="Registrar nuevo vehículo" onclick="cargarContenido('vehiculo/views/fragmento_crear.php'); return false;">
+        <img src="nuevovehiculo.png" alt="Nuevo vehículo" style="width: 40px; height: 40px;">
+    </a>
     <h2 class="titulo_lista">
         LISTA DE VEHICULOS
     </h2>
     <input type="text" id="buscador" placeholder="Buscar por placa o cliente...">
 
     <table role="grid">
+        <colgroup>
+        <col style="width: 40px;">  <!-- Solo para el ícono -->
+        <col style="width: auto;">
+        <col style="width: auto;">
+        <col style="width: 180px;"> <!-- Acciones con botones -->
+        </colgroup>
         <thead>
             <tr>
                 <th></th>
@@ -35,9 +42,14 @@
                         <td><input type="text" value="<?= htmlspecialchars($row['placa']) ?>" readonly></td>
                         <td><input type="text" value="<?= htmlspecialchars($row['nombre_completo']) ?>" readonly></td>
                         <td class="acciones">
-                            <a href="#" class="btnfos btnfos-3" onclick="editarVehiculo(<?= $row['id_vehiculo'] ?>); return false;">Editar</a>
-                            <a href="#" class="btnfos btnfos-3" onclick="eliminarVehiculo(<?= $row['id_vehiculo'] ?>); return false;">Eliminar</a>
+                            <a href="#" class="btnfos btnfos-3" title="Editar vehículo" onclick="editarVehiculo(<?= $row['id_vehiculo'] ?>); return false;">
+                                <img src="editar.png" alt="Editar" style="width: 40px; height: 40px;">
+                            </a>
+                            <a href="#" class="btnfos btnfos-3" title="Eliminar vehículo" onclick="eliminarVehiculo(<?= $row['id_vehiculo'] ?>); return false;">
+                                <img src="eliminar.png" alt="Eliminar" style="width: 40px; height: 40px;">
+                            </a>
                         </td>
+
                     </tr>
                 <?php endwhile; ?>
             <?php else: ?>

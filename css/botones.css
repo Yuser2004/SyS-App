@@ -1,17 +1,10 @@
-body {
-    margin: 0;
-    height: 100vh;
-    display: flex;
-    flex-direction: row;
-    background-color: #939393;
-    font-family: 'Nunito', sans-serif;
-}
+  
 /* Lista y elementos */
 ul {
     padding: 10;
     list-style-type: none;
     margin: 0;
-    background-color: #ffffff;
+    background-color: #ffffff00;
       position: relative;
   z-index: 2; /* alto para que quede por encima */
 }
@@ -20,7 +13,7 @@ li {
     font-size: 25px;
     width: 8em;
     height: 2em;
-    color: #0000007e;
+    color: #050505fe;
     border-left: 0.08em solid;
     position: relative;
     margin-top: 0.8em;
@@ -57,7 +50,7 @@ li span {
     top: -10%;
     box-sizing: border-box;
     border: 0.08em solid;
-    background-color: #ffffff;
+    background-image: linear-gradient(135deg, #9f05ff 10%, #fd5e08 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -74,17 +67,8 @@ li:hover span {
 .cuerpo {
   border-radius: 6px;
   padding: 1rem;
-  overflow-y: hidden;
   width: 75%;
-}
-.contenedor-del-contenedor {
-    border: 2px solid black;
-    width: 250px;
-    height: 400px;
-    max-height: 500px;
-    max-width: 300px;
-    background-color: #ffffff;
-    
+  height: 100%;
 }
 @media screen and (max-width: 768px) {
   body {

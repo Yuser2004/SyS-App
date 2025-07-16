@@ -16,13 +16,29 @@ $recibos = $conn->query("
 <link rel="stylesheet" href="css/tabla_estilo.css">
 
 <div class="members">
-    <a href="#" class="btnfos btnfos-3" onclick="cargarContenido('recibos/views/crear.php'); return false;">Registrar Recibo</a>
+    <a href="#"
+        class="btnfos btnfos-3"
+        onclick="cargarContenido('recibos/views/crear.php'); return false;"
+        title="Registrar Recibo">
+        <img src="nuevo_recibo.png" alt="Registrar Recibo" style="width: 35px; height: 35px;">
+    </a>
 
     <h2 class="titulo_lista">LISTA DE RECIBOS</h2>
 
     <input type="text" id="buscador" placeholder="Buscar por cliente, asesor o placa...">
 
     <table role="grid">
+        <colgroup>
+        <col style="width: 40px;">  <!-- Solo para el ícono -->
+        <col style="width: auto;">
+        <col style="width: auto;">
+        <col style="width: auto;">
+        <col style="width: auto;">
+        <col style="width: auto;">
+        <col style="width: auto;">
+        <col style="width: auto;">
+        <col style="width: 180px;"> <!-- Acciones con botones -->
+        </colgroup>
         <thead>
             <tr>
                 <th>#</th>
@@ -49,9 +65,26 @@ $recibos = $conn->query("
                         <td><input type="text" value="<?= ucfirst($recibo['estado']) ?>" readonly></td>
                         <td><input type="text" value="<?= ucfirst($recibo['metodo_pago']) ?>" readonly></td>
                         <td class="acciones">
-                            <a href="#" class="btnfos btnfos-3" onclick="cargarContenido('recibos/views/editar.php?id=<?= $recibo['id'] ?>')">Editar</a>
-                            <a href="#" class="btnfos btnfos-3" onclick="eliminarRecibo(<?= $recibo['id'] ?>)">Eliminar</a>
-                            <a href="#" class="btnfos btnfos-3" onclick="verEgresos(<?= $recibo['id'] ?>)">💸 Egresos</a>
+                            <a href="#"
+                            class="btnfos btnfos-3"
+                            onclick="cargarContenido('recibos/views/editar.php?id=<?= $recibo['id'] ?>')"
+                            title="Editar Recibo">
+                                <img src="editar.png" alt="Editar" style="width: 40px; height: 40px;">
+                            </a>
+                            
+                            <a href="#"
+                            class="btnfos btnfos-3"
+                            onclick="eliminarRecibo(<?= $recibo['id'] ?>)"
+                            title="Eliminar Recibo">
+                                <img src="eliminar.png" alt="Eliminar" style="width: 40px; height: 40px;">
+                            </a>
+                            
+                            <a href="#"
+                            class="btnfos btnfos-3"
+                            onclick="verEgresos(<?= $recibo['id'] ?>)"
+                            title="Ver Egresos del Recibo">
+                                <img src="finanzas.png" alt="Egresos" style="width: 40px; height: 40px;">
+                            </a>
                         </td>
                     </tr>
                 <?php endwhile; ?>
