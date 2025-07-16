@@ -99,17 +99,21 @@ $recibos = $conn->query("
 function eliminarRecibo(id) {
     if (!confirm("¿Estás seguro de eliminar este recibo?")) return;
 
-    fetch(`recibos/eliminar.php?id=${id}`)
-        .then(res => res.text())
-        .then(resp => {
-            if (resp.trim() === "ok") {
-                cargarContenido('recibos/views/lista.php');
-            } else {
-                alert("Error al eliminar: " + resp);
-            }
-        })
-        .catch(err => alert("Error de red: " + err));
+    fetch("recibos/eliminar.php", {
+        method: "POST",
+        body: new URLSearchParams({ id })
+    })
+    .then(res => res.text())
+    .then(resp => {
+        if (resp.trim() === "ok") {
+            cargarContenido('recibos/views/lista.php');
+        } else {
+            alert("Error al eliminar: " + resp);
+        }
+    })
+    .catch(err => alert("Error de red: " + err));
 }
+
 
 function verEgresos(id) {
     fetch(`recibos/views/egresos_modal.php?id=${id}`)

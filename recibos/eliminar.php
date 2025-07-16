@@ -1,30 +1,26 @@
 <?php
-include '../models/conexion.php';
+include __DIR__ . '/models/conexion.php';
 
-$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+$id = intval($_POST['id'] ?? 0);
 
 if ($id <= 0) {
     echo "ID inválido.";
     exit;
 }
 
-// Verificar si el recibo tiene egresos relacionados (si aplica lógica similar a tu caso de vehículos)
-$verificar = $conn->query("SELECT COUNT(*) AS total FROM egresos WHERE id_recibo = $id");
-$datos = $verificar->fetch_assoc();
+$sql = "DELETE FROM recibos WHERE id = ?";
+$stmt = $conn->prepare($sql);
 
-if ($datos['total'] > 0) {
-    echo "no-se-puede-eliminar"; // Manejado desde el JS
-    $conn->close();
-    exit;
-}
-
-// Si no hay egresos, eliminar
-$eliminar = $conn->query("DELETE FROM recibos WHERE id = $id");
-
-if ($eliminar) {
-    echo "ok";
+if ($stmt) {
+    $stmt->bind_param("i", $id);
+    if ($stmt->execute()) {
+        echo "ok";
+    } else {
+        echo "Error al eliminar: " . $stmt->error;
+    }
+    $stmt->close();
 } else {
-    echo "Error al eliminar: " . $conn->error;
+    echo "Error en la preparación: " . $conn->error;
 }
 
 $conn->close();

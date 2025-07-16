@@ -1,122 +1,265 @@
 <?php
 include __DIR__ . '/../models/conexion.php';
 
-$id = $_GET['id'] ?? null;
-if (!$id) {
-    echo "<p>Recibo no encontrado.</p>";
+$id_recibo = intval($_GET['id'] ?? 0);
+if ($id_recibo <= 0) {
+    echo "ID inválido.";
     exit;
 }
 
-$recibo = $conn->query("SELECT * FROM recibos WHERE id = $id")->fetch_assoc();
+// Obtener datos del recibo
+$sql = "SELECT r.*, c.nombre_completo, c.id_cliente, v.placa, v.id_vehiculo, a.nombre AS nombre_asesor, a.id_asesor
+        FROM recibos r
+        LEFT JOIN clientes c ON r.id_cliente = c.id_cliente
+        LEFT JOIN vehiculo v ON r.id_vehiculo = v.id_vehiculo
+        LEFT JOIN asesor a ON r.id_asesor = a.id_asesor
+        WHERE r.id = $id_recibo";
+$result = $conn->query($sql);
+$recibo = $result->fetch_assoc();
 
 if (!$recibo) {
-    echo "<p>No se encontró el recibo.</p>";
+    echo "Recibo no encontrado.";
     exit;
 }
 
-$clientes = $conn->query("SELECT id_cliente, nombre_completo FROM clientes");
-$vehiculos = $conn->query("SELECT id_vehiculo, placa FROM vehiculo");
-$asesores = $conn->query("SELECT id_asesor, nombre FROM asesor");
+$conn->close();
 ?>
 
-<link rel="stylesheet" href="cliente/public/css/estilos_form.css">
+<link rel="stylesheet" href="recibos/public/estilos_form.css">
 
 <div class="login-form">
     <h1>Editar Recibo</h1>
 
     <form id="form-editar-recibo">
-        <input type="hidden" name="id" value="<?= $recibo['id'] ?>">
+        <input type="hidden" name="id" value="<?= $id_recibo ?>">
 
-        <div class="form-input-material">
-            <label for="id_cliente">Cliente:</label>
-            <select id="id_cliente" name="id_cliente" required>
-                <option value="">Seleccione</option>
-                <?php while ($c = $clientes->fetch_assoc()): ?>
-                    <option value="<?= $c['id_cliente'] ?>" <?= $recibo['id_cliente'] == $c['id_cliente'] ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($c['nombre_completo']) ?>
-                    </option>
-                <?php endwhile; ?>
-            </select>
+        <!-- Cliente -->
+        <div class="form-input-material" style="position: relative;">
+            <input type="text" id="buscador_cliente" placeholder=" " autocomplete="off"
+                value="<?= htmlspecialchars($recibo['nombre_completo']) ?>">
+            <input type="hidden" id="id_cliente" name="id_cliente" value="<?= $recibo['id_cliente'] ?>" required>
+            <div id="resultados_cliente" class="resultado-autocompletar"></div>
+            <label for="buscador_cliente">Cliente</label>
         </div>
 
-        <div class="form-input-material">
-            <label for="id_vehiculo">Vehículo:</label>
-            <select id="id_vehiculo" name="id_vehiculo" required>
-                <option value="">Seleccione</option>
-                <?php while ($v = $vehiculos->fetch_assoc()): ?>
-                    <option value="<?= $v['id_vehiculo'] ?>" <?= $recibo['id_vehiculo'] == $v['id_vehiculo'] ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($v['placa']) ?>
-                    </option>
-                <?php endwhile; ?>
-            </select>
+        <!-- Vehículo -->
+        <div class="form-input-material" style="position: relative;">
+            <input type="text" id="buscador_vehiculo" placeholder=" " autocomplete="off"
+                value="<?= htmlspecialchars($recibo['placa']) ?>">
+            <input type="hidden" id="id_vehiculo" name="id_vehiculo" value="<?= $recibo['id_vehiculo'] ?>" required>
+            <div id="resultados_vehiculo" class="resultado-autocompletar"></div>
+            <label for="buscador_vehiculo">Vehículo</label>
         </div>
 
-        <div class="form-input-material">
-            <label for="id_asesor">Asesor:</label>
-            <select id="id_asesor" name="id_asesor" required>
-                <option value="">Seleccione</option>
-                <?php while ($a = $asesores->fetch_assoc()): ?>
-                    <option value="<?= $a['id_asesor'] ?>" <?= $recibo['id_asesor'] == $a['id_asesor'] ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($a['nombre']) ?>
-                    </option>
-                <?php endwhile; ?>
-            </select>
+        <!-- Asesor -->
+        <div class="form-input-material" style="position: relative;">
+            <input type="text" id="buscador_asesor" placeholder=" " autocomplete="off"
+                value="<?= htmlspecialchars($recibo['nombre_asesor']) ?>">
+            <input type="hidden" id="id_asesor" name="id_asesor" value="<?= $recibo['id_asesor'] ?>">
+            <div id="resultados_asesor" class="resultado-autocompletar"></div>
+            <label for="buscador_asesor">Asesor</label>
         </div>
 
+        <!-- Concepto -->
         <div class="form-input-material">
-            <input type="number" name="valor_servicio" id="valor_servicio" value="<?= $recibo['valor_servicio'] ?>" required placeholder=" ">
+            <input type="text" id="concepto_servicio" name="concepto_servicio" placeholder=" "
+                value="<?= htmlspecialchars($recibo['concepto_servicio']) ?>" required>
+            <label for="concepto_servicio">Concepto del Servicio</label>
+        </div>
+
+        <!-- Valor -->
+        <div class="form-input-material">
+            <input type="number" id="valor_servicio" name="valor_servicio" step="0.01" placeholder=" "
+                value="<?= $recibo['valor_servicio'] ?>" required>
             <label for="valor_servicio">Valor del Servicio</label>
         </div>
 
+        <!-- Fecha -->
         <div class="form-input-material">
-            <label for="estado">Estado:</label>
-            <select name="estado" id="estado" required>
-                <option value="pendiente" <?= $recibo['estado'] === 'pendiente' ? 'selected' : '' ?>>Pendiente</option>
-                <option value="pagado" <?= $recibo['estado'] === 'pagado' ? 'selected' : '' ?>>Pagado</option>
-            </select>
+            <input type="date" id="fecha_tramite" name="fecha_tramite" placeholder=" "
+                value="<?= $recibo['fecha_tramite'] ?>" required>
+            <label for="fecha_tramite">Fecha de Trámite</label>
         </div>
 
+        <!-- Estado -->
         <div class="form-input-material">
-            <label for="metodo_pago">Método de Pago:</label>
+            <select name="estado" id="estado" required>
+                <option value="" disabled hidden>Selecciona un estado</option>
+                <option value="pendiente" <?= $recibo['estado'] === 'pendiente' ? 'selected' : '' ?>>Pendiente</option>
+                <option value="completado" <?= $recibo['estado'] === 'completado' ? 'selected' : '' ?>>Completado</option>
+                <option value="cancelado" <?= $recibo['estado'] === 'cancelado' ? 'selected' : '' ?>>Cancelado</option>
+            </select>
+            <label for="estado">Estado</label>
+        </div>
+
+        <!-- Método de pago -->
+        <div class="form-input-material">
             <select name="metodo_pago" id="metodo_pago" required>
+                <option value="" disabled hidden>Selecciona un método</option>
                 <option value="efectivo" <?= $recibo['metodo_pago'] === 'efectivo' ? 'selected' : '' ?>>Efectivo</option>
                 <option value="transferencia" <?= $recibo['metodo_pago'] === 'transferencia' ? 'selected' : '' ?>>Transferencia</option>
+                <option value="tarjeta" <?= $recibo['metodo_pago'] === 'tarjeta' ? 'selected' : '' ?>>Tarjeta</option>
                 <option value="otro" <?= $recibo['metodo_pago'] === 'otro' ? 'selected' : '' ?>>Otro</option>
             </select>
+            <label for="metodo_pago">Método de pago</label>
         </div>
 
+        <!-- Descripción -->
         <div class="form-input-material">
-            <input type="text" name="concepto" id="concepto" value="<?= htmlspecialchars($recibo['concepto_servicio']) ?>" required placeholder=" ">
-            <label for="concepto">Concepto del Servicio</label>
+            <textarea name="descripcion_servicio" id="descripcion_servicio" rows="4"
+                placeholder=" "><?= htmlspecialchars($recibo['descripcion_servicio']) ?></textarea>
+            <label for="descripcion_servicio">Descripción del Servicio</label>
         </div>
 
-        <button type="submit" class="btn">Actualizar</button>
+        <button type="submit" class="btn">Actualizar Recibo</button>
     </form>
 
     <button class="btn" onclick="cargarContenido('recibos/views/lista.php')">← Volver</button>
 
+    <!-- Scripts de autocompletado, validación y envío -->
     <script>
-    document.getElementById("form-editar-recibo").addEventListener("submit", async function(e) {
-        e.preventDefault();
+        // Buscador Cliente
+        document.getElementById("buscador_cliente").addEventListener("input", async function () {
+            const query = this.value.trim();
+            const contenedor = document.getElementById("resultados_cliente");
+            if (query.length < 2) return contenedor.innerHTML = "";
 
-        const formData = new FormData(this);
+            try {
+                const resp = await fetch(`recibos/buscar_cliente.php?q=${encodeURIComponent(query)}`);
+                const data = await resp.json();
+                contenedor.innerHTML = data.length === 0
+                    ? "<div class='item'>No se encontraron resultados</div>"
+                    : "";
 
-        try {
-            const res = await fetch("recibos/actualizar.php", {
-                method: "POST",
-                body: formData
-            });
-
-            const text = await res.text();
-
-            if (text.trim() === "ok") {
-                cargarContenido('recibos/views/lista.php');
-            } else {
-                alert("Error: " + text);
+                data.forEach(cliente => {
+                    const div = document.createElement("div");
+                    div.className = "item";
+                    div.textContent = `${cliente.nombre_completo} (${cliente.documento})`;
+                    div.onclick = () => {
+                        document.getElementById("buscador_cliente").value = cliente.nombre_completo;
+                        document.getElementById("id_cliente").value = cliente.id_cliente;
+                        contenedor.innerHTML = "";
+                    };
+                    contenedor.appendChild(div);
+                });
+            } catch (err) {
+                console.error("Error al buscar cliente:", err);
             }
-        } catch (err) {
-            alert("Error de red: " + err);
-        }
-    });
+        });
+
+        // Buscador Vehículo
+        document.getElementById("buscador_vehiculo").addEventListener("input", async function () {
+            const query = this.value.trim();
+            const contenedor = document.getElementById("resultados_vehiculo");
+            if (query.length < 2) return contenedor.innerHTML = "";
+
+            try {
+                const resp = await fetch(`recibos/buscar_vehiculo.php?q=${encodeURIComponent(query)}`);
+                const data = await resp.json();
+                contenedor.innerHTML = data.length === 0
+                    ? "<div class='item'>No se encontraron resultados</div>"
+                    : "";
+
+                data.forEach(vehiculo => {
+                    const div = document.createElement("div");
+                    div.className = "item";
+                    div.textContent = vehiculo.placa;
+                    div.onclick = () => {
+                        document.getElementById("buscador_vehiculo").value = vehiculo.placa;
+                        document.getElementById("id_vehiculo").value = vehiculo.id_vehiculo;
+                        contenedor.innerHTML = "";
+                    };
+                    contenedor.appendChild(div);
+                });
+            } catch (err) {
+                console.error("Error al buscar vehículo:", err);
+            }
+        });
+
+        // Buscador Asesor
+        document.getElementById("buscador_asesor").addEventListener("input", async function () {
+            const query = this.value.trim();
+            const contenedor = document.getElementById("resultados_asesor");
+            if (query.length < 2) return contenedor.innerHTML = "";
+
+            try {
+                const resp = await fetch(`recibos/buscar_asesor.php?q=${encodeURIComponent(query)}`);
+                const data = await resp.json();
+                contenedor.innerHTML = data.length === 0
+                    ? "<div class='item'>No se encontraron resultados</div>"
+                    : "";
+
+                data.forEach(asesor => {
+                    const div = document.createElement("div");
+                    div.className = "item";
+                    div.textContent = asesor.nombre;
+                    div.onclick = () => {
+                        document.getElementById("buscador_asesor").value = asesor.nombre;
+                        document.getElementById("id_asesor").value = asesor.id_asesor;
+                        contenedor.innerHTML = "";
+                    };
+                    contenedor.appendChild(div);
+                });
+            } catch (err) {
+                console.error("Error al buscar asesor:", err);
+            }
+        });
+
+        // Enviar formulario con validación de relación
+        document.getElementById("form-editar-recibo").addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const id_cliente = document.getElementById("id_cliente").value.trim();
+            const id_vehiculo = document.getElementById("id_vehiculo").value.trim();
+
+            if (!id_cliente || !id_vehiculo) {
+                alert("⚠ Debes seleccionar un cliente y un vehículo.");
+                return;
+            }
+
+            try {
+                const validar = await fetch(`recibos/verificar_relacion_vehiculo.php?id_cliente=${id_cliente}&id_vehiculo=${id_vehiculo}`);
+                const estado = (await validar.text()).trim();
+
+                if (estado === "invalido") {
+                    const confirmar = confirm("⚠ El vehículo no pertenece al cliente. ¿Deseas continuar?");
+                    if (!confirmar) return;
+                }
+
+                const formData = new FormData(this);
+                const resp = await fetch("recibos/actualizar.php", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const texto = await resp.text();
+                console.log("Respuesta:", texto);
+
+                if (texto.trim() === "ok") {
+                    cargarContenido('recibos/views/lista.php');
+                } else {
+                    alert("Error al actualizar: " + texto);
+                }
+            } catch (err) {
+                console.error("Error en envío:", err);
+                alert("Error inesperado.");
+            }
+        });
+
+        // Activar clase visual input-activo
+        document.addEventListener("DOMContentLoaded", () => {
+            const inputs = document.querySelectorAll(".form-input-material input, .form-input-material textarea, .form-input-material select");
+            inputs.forEach(input => {
+                if (input.value.trim() !== "") input.classList.add("input-activo");
+
+                input.addEventListener("input", () => {
+                    input.classList.toggle("input-activo", input.value.trim() !== "");
+                });
+
+                input.addEventListener("change", () => {
+                    input.classList.toggle("input-activo", input.value.trim() !== "");
+                });
+            });
+        });
     </script>
 </div>
