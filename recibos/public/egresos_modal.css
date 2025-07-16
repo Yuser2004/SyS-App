@@ -1,0 +1,62 @@
+/* Egresos Modal Styling */
+#modalAgregarEgreso .modal-content {
+  background: #fdf7ff;
+  border-radius: 16px;
+  padding: 20px;
+  border: 2px solid #d2b4e5;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  color: #3b235d;
+}
+
+#modalAgregarEgreso .modal-header {
+  background-color: #e9d5f6;
+  border-bottom: none;
+  border-radius: 16px 16px 0 0;
+}
+
+#modalAgregarEgreso .modal-title {
+  font-weight: bold;
+  color: #5a2d82;
+}
+
+#modalAgregarEgreso .form-control {
+  border-radius: 8px;
+  border: 1px solid #d4c0e3;
+  padding: 10px;
+}
+
+#modalAgregarEgreso .form-control:focus {
+  border-color: #c084fc;
+  box-shadow: 0 0 5px rgba(192, 132, 252, 0.5);
+}
+
+#modalAgregarEgreso label {
+  font-weight: 500;
+  margin-top: 8px;
+  color: #5c3366;
+}
+
+#modalAgregarEgreso .btn-primary {
+  background-color: #b983ff;
+  border-color: #b983ff;
+  transition: all 0.3s ease;
+  font-weight: bold;
+  border-radius: 8px;
+}
+
+#modalAgregarEgreso .btn-primary:hover {
+  background-color: #9b6bce;
+  border-color: #9b6bce;
+}
+
+#modalAgregarEgreso .btn-secondary {
+  background-color: #d6c8e5;
+  color: #4d3c5e;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+#modalAgregarEgreso .btn-secondary:hover {
+  background-color: #b8a9cc;
+  color: #fff;
+}

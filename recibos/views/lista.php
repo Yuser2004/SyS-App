@@ -14,6 +14,7 @@ $recibos = $conn->query("
 ?>
 
 <link rel="stylesheet" href="css/tabla_estilo.css">
+<link rel="stylesheet" href="recibos/public/egresos_modal.css">
 
 <div class="members">
     <a href="#"
@@ -119,9 +120,29 @@ function verEgresos(id) {
     fetch(`recibos/views/egresos_modal.php?id=${id}`)
         .then(res => res.text())
         .then(html => {
-            const modal = document.createElement("div");
-            modal.innerHTML = html;
-            document.body.appendChild(modal);
+            // Crear contenedor temporal
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = html;
+
+            // Extraer el modal
+            const modalEl = tempDiv.querySelector(".modal");
+            if (modalEl) {
+                document.body.appendChild(modalEl);
+
+                // Inicializar y mostrar con Bootstrap
+                const modal = new bootstrap.Modal(modalEl);
+                modal.show();
+
+                // Remover el modal del DOM al cerrarse
+                modalEl.addEventListener('hidden.bs.modal', () => {
+                    modalEl.remove();
+                });
+            } else {
+                console.error("No se encontró el modal en el HTML cargado");
+            }
+        })
+        .catch(err => {
+            console.error("Error al cargar el modal:", err);
         });
 }
 

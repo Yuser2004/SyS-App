@@ -10,6 +10,7 @@
         <link rel="stylesheet" href="css/botones.css">
         <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
         <!-- Scripts -->
         <script src="cliente/public/js/buscador.js" defer></script>
@@ -125,6 +126,7 @@
                     .catch(error => console.error('Error al cargar contenido:', error));
             }
         </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     </body>
     </html>
