@@ -1,0 +1,11 @@
+Placa: QWE123 | ID: 0
+Placa: WER345 | ID: 0
+Placa: GHJ678 | ID: 0
+Placa: JKL890 | ID: 0
+Placa: DFG564 | ID: 0
+Placa: GHJ678 | ID: 0
+Placa: HJK789 | ID: 0
+Placa: WER567 | ID: 0
+Placa: 567WER | ID: 0
+Placa: 234YUI | ID: 0
+Placa: 890UIO | ID: 0

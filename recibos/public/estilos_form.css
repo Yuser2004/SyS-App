@@ -1,0 +1,166 @@
+/* Estructura general del formulario */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 50px 40px;
+  color: white;
+  background: rgba(0, 0, 0, 0.85);
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.3);
+  width: 100%;
+  max-width: 800px;
+  margin: auto;
+}
+
+.login-form h1 {
+  margin-bottom: 24px;
+  text-align: center;
+  font-size: 26px;
+}
+
+/* Contenedor en dos columnas */
+.login-form form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 30px;
+  width: 100%;
+}
+
+.login-form form .form-input-material {
+  position: relative;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .login-form form {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Inputs y textarea */
+.form-input-material input,
+.form-input-material textarea,
+.form-input-material select {
+  width: 100%;
+  padding: 10px 10px 10px 0;
+  border: none;
+  border-bottom: 2px solid white;
+  background: transparent;
+  color: white;
+  font-size: 16px;
+  outline: none;
+  border-radius: 4px;
+}
+
+.form-input-material label {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  color: #aaa;
+  font-size: 14px;
+  pointer-events: none;
+  transition: 0.2s ease all;
+}
+
+.form-input-material input:focus ~ label,
+.form-input-material input.input-activo ~ label,
+.form-input-material textarea:focus ~ label,
+.form-input-material textarea.input-activo ~ label,
+.form-input-material select:focus ~ label,
+.form-input-material select.input-activo ~ label {
+  top: -12px;
+  font-size: 12px;
+  color: #3498db;
+}
+
+
+/* Botón */
+.login-form .btn {
+  grid-column: 1 / -1;
+  padding: 12px;
+  margin-top: 10px;
+  background-color: #3498db;
+  border: none;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.3s ease;
+}
+
+.login-form .btn:hover {
+  background-color: #2980b9;
+}
+
+/* Resultados del autocompletado */
+.resultado-autocompletar {
+  position: absolute;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%;
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 999;
+  margin-top: 4px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  font-family: 'Nunito', sans-serif;
+  padding: 0;
+}
+
+.resultado-autocompletar .item {
+  padding: 10px 14px;
+  font-size: 15px;
+  border-bottom: 1px solid #e6e6e6;
+  background-color: #fff;
+  color: #333;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.resultado-autocompletar .item:last-child {
+  border-bottom: none;
+}
+
+.resultado-autocompletar .item:hover {
+  background-color: #f0f8ff;
+  color: #000;
+}
+
+/* Opciones por valor - ESTADO */
+#estado option[value="pendiente"] {
+  background-color: #fff9db;
+  color: #a67c00;
+}
+#estado option[value="completado"] {
+  background-color: #d4fbe2;
+  color: #2e7d32;
+}
+#estado option[value="cancelado"] {
+  background-color: #fde0e0;
+  color: #c62828;
+}
+
+/* Opciones por valor - MÉTODO DE PAGO */
+#metodo_pago option[value="efectivo"] {
+  background-color: #f1f8e9;
+  color: #33691e;
+}
+#metodo_pago option[value="transferencia"] {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+#metodo_pago option[value="tarjeta"] {
+  background-color: #fce4ec;
+  color: #880e4f;
+}
+#metodo_pago option[value="otro"] {
+  background-color: #ede7f6;
+  color: #4527a0;
+}
+.input-con-valor ~ label {
+  top: -12px;
+  font-size: 12px;
+  color: #3498db;
+}

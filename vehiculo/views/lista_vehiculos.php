@@ -58,15 +58,16 @@ function eliminarVehiculo(id) {
     fetch(`vehiculo/eliminar.php?id=${id}`)
         .then(res => res.text())
         .then(respuesta => {
-            if (respuesta.trim() === "ok") {
+            const r = respuesta.trim();
+            if (r === "ok") {
                 cargarContenido('vehiculo/views/lista_vehiculos.php');
+            } else if (r === "no-se-puede-eliminar") {
+                alert("❌ No se puede eliminar este vehículo porque tiene servicios registrados.");
             } else {
                 alert(respuesta);
             }
         })
         .catch(error => alert("Error de red: " + error));
 }
-
-
 inicializarBuscador();
 </script>

@@ -52,8 +52,9 @@ function eliminarCliente(id) {
             .then(res => res.text())
             .then(resp => {
                 if (resp.trim() === "ok") {
-                    // Recargar el fragmento de clientes
                     cargarContenido('cliente/views/fragmento_clientes.php');
+                } else if (resp.trim() === "no-se-puede-eliminar") {
+                    alert("❌ No se puede eliminar este cliente porque tiene servicios registrados.");
                 } else {
                     alert("Error al eliminar: " + resp);
                 }

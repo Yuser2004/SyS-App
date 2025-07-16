@@ -9,8 +9,20 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/tabla_estilo.css">
     <script src="cliente/public/js/buscador.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
 
 </head>
+<!-- <header class="hero-header">
+    <div class="overlay">
+        <h1 class="hero-title">Simply The Best</h1>
+        <h3 class="hero-subtitle">Reasons for Choosing US</h3>
+        <p class="hero-text">Lorem ipsum dolor sit amet consectetur...</p>
+        <br>
+        <button class="hero-button">READ MORE</button>
+    </div>
+</header>
+ -->
+
 <body>
     <div class="contenedor-del-contenedor" >
         <div  class="contenedor-menu">
@@ -33,7 +45,12 @@
                 <li onclick="cargarContenido('asesor/views/lista_asesor.php')">
                     <span>👤 Asesores</span>
                 </li>
-                <li><span>XXXXX</span></li>
+                <li>
+                    <span onclick="cargarContenido('recibos/views/lista.php')">
+                        <img src="recibo.png" alt="Recibos" style="width: 40px; height: 40px; margin-right: 8px; vertical-align: middle;">
+                        Recibos
+                    </span>
+                </li>
             </ul>
         </div>
     </div>

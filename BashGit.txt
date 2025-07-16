@@ -59,6 +59,24 @@ SyS-app/
 │       ├── fragmento_editar.php 
 │       ├── fragmento_crear.php    
 │       ├── lista_vehiculos.php    
+├── recibos/
+│   ├── guardar.php              
+│   ├── actualizar.php          
+│   ├── eliminar.php             
+│   ├── listar_egresos.php       
+│   ├── buscar_vehiculo.php      
+│   ├── buscar_asesor.php        
+│   ├── models/
+│   │   └── conexion.php
+│   ├── public/
+│   │   ├── estilos_form.css
+│   │   ├──buscador_vehiculo.js
+│   │   ├──buscador_asesor.js
+│   └── views/
+│       ├── crear.php
+│       ├── editar.php
+│       ├── lista.php
+│       ├── egresos_modal.php         # Modal para agregar/ver egresos
 │
 └── css/     
 │    ├── estilos_form.css    
