@@ -27,9 +27,10 @@
   width: 100%;
 }
 
+/* Contenedor del input (sin efectos visuales) */
 .login-form form .form-input-material {
-  position: relative;
   width: 100%;
+  position: relative; /* por si se necesita algo futuro */
 }
 
 @media (max-width: 768px) {
@@ -38,7 +39,7 @@
   }
 }
 
-/* Inputs y textarea */
+/* Inputs y textarea (estilo simple) */
 .form-input-material input,
 .form-input-material textarea,
 .form-input-material select {
@@ -53,27 +54,15 @@
   border-radius: 4px;
 }
 
+/* Etiquetas normales, sin movimiento */
 .form-input-material label {
-  position: absolute;
-  top: 10px;
-  left: 0;
-  color: #aaa;
+  display: block;
+  margin-bottom: 6px;
+  color: #ddd;
   font-size: 14px;
-  pointer-events: none;
-  transition: 0.2s ease all;
-}
+  position: static !important;
 
-.form-input-material input:focus ~ label,
-.form-input-material input.input-activo ~ label,
-.form-input-material textarea:focus ~ label,
-.form-input-material textarea.input-activo ~ label,
-.form-input-material select:focus ~ label,
-.form-input-material select.input-activo ~ label {
-  top: -12px;
-  font-size: 12px;
-  color: #3498db;
 }
-
 
 /* Botón */
 .login-form .btn {
@@ -108,6 +97,7 @@
   font-family: 'Nunito', sans-serif;
   padding: 0;
 }
+
 
 .resultado-autocompletar .item {
   padding: 10px 14px;
@@ -159,8 +149,9 @@
   background-color: #ede7f6;
   color: #4527a0;
 }
-.input-con-valor ~ label {
-  top: -12px;
-  font-size: 12px;
-  color: #3498db;
+#tabla-recibos tr {
+  display: none;
+}
+#tabla-recibos tr.visible {
+  display: table-row;
 }

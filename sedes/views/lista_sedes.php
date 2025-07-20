@@ -14,8 +14,6 @@ $sedes = $conn->query("
 <a href="#" class="btnfos btnfos-3" onclick="cargarContenido('sedes/views/crear_sede.php'); return false;">Registrar Sede</a> 
 <h2 class="titulo_lista">LISTA DE SEDES</h2>
 
-<input type="text" id="buscador" placeholder="Buscar por nombre o dirección...">
-
 <table role="grid">
     <thead>
         <tr>

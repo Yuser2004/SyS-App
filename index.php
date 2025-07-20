@@ -25,7 +25,7 @@
         .menu-lateral {
             width: 250px;
             min-width: 220px;
-            background-image: linear-gradient(135deg, #9f05ff 10%, #fd5e08 100%);
+            background-color: #080b40;
             border-right: 1px solid #ccc;
             padding: 10px;
             overflow-y: none;

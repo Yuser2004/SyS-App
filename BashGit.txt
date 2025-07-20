@@ -8,6 +8,12 @@ git push
 (PARA PODER HACER CAMBIOS EN EL GIT)
 
 
+
+ngrok
+cd C:\Users\MARTIN GARRIX\Downloads
+ngrok http 80
+SyS-app/
+
 SyS-app/
            
 ├── asesor/

@@ -4,7 +4,7 @@ ul {
     padding: 10;
     list-style-type: none;
     margin: 0;
-    background-color: #ffffff00;
+    background-color: #2e2c2c00;
       position: relative;
   z-index: 2; /* alto para que quede por encima */
 }
@@ -13,7 +13,7 @@ li {
     font-size: 25px;
     width: 8em;
     height: 2em;
-    color: #050505fe;
+    color: #fffffffe;
     border-left: 0.08em solid;
     position: relative;
     margin-top: 0.8em;
@@ -50,13 +50,14 @@ li span {
     top: -10%;
     box-sizing: border-box;
     border: 0.08em solid;
-    background-image: linear-gradient(135deg, #9f05ff 10%, #fd5e08 100%);
+    background-image: linear-gradient(135deg, #020420 10%, #0897fd 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     text-transform: capitalize;
     transform: translateX(calc(-0.15em * 3 - 0.08em * 2));
     transition: 0.3s;
+    color: #ffffff;
 }
 
 li:hover span {

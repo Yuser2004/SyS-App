@@ -25,62 +25,58 @@ if ($id_cliente > 0) {
     <form id="form-crear-recibo">
 
         <!-- Cliente -->
-        <div class="form-input-material" style="position: relative;">
-            <input type="text" id="buscador_cliente" placeholder=" " autocomplete="off"
+        <div class="form-input-material">
+            <label for="buscador_cliente">Cliente</label>
+            <input type="text" id="buscador_cliente" autocomplete="off"
                 value="<?= htmlspecialchars($cliente_nombre) ?>">
             <input type="hidden" id="id_cliente" name="id_cliente" value="<?= $id_cliente ?>" required>
             <div id="resultados_cliente" class="resultado-autocompletar"></div>
-            <label for="buscador_cliente">Cliente</label>
         </div>
 
 
         <!-- Vehículo -->
-        <div class="form-input-material" style="position: relative;">
-            <input type="text" id="buscador_vehiculo" autocomplete="off" placeholder=" " >
+        <div class="form-input-material">
+            <label for="buscador_vehiculo">Vehículo</label>
+            <input type="text" id="buscador_vehiculo" autocomplete="off" >
             <input type="hidden" id="id_vehiculo" name="id_vehiculo" value="<?= $id_vehiculo ?>" required>
             <div id="resultados_vehiculo" class="resultado-autocompletar"></div>
-            <label for="buscador_vehiculo">Vehículo</label>
         </div>
 
         <!-- Asesor -->
-        <div class="form-input-material" style="position: relative;">
-            <input type="text" id="buscador_asesor" autocomplete="off" placeholder=" " >
+        <div class="form-input-material">
+            <label for="buscador_asesor">Asesor</label>
+            <input type="text" id="buscador_asesor" autocomplete="off" >
             <input type="hidden" id="id_asesor" name="id_asesor" value="<?= $id_asesor ?>">
             <div id="resultados_asesor" class="resultado-autocompletar"></div>
-            <label for="buscador_asesor">Asesor</label>
         </div>
 
         <!-- Concepto -->
         <div class="form-input-material">
-            <input type="text" id="concepto_servicio" name="concepto_servicio" placeholder=" " required>
             <label for="concepto_servicio">Concepto del Servicio</label>
+            <input type="text" id="concepto_servicio" name="concepto_servicio" required>
         </div>
 
         <!-- Valor -->
         <div class="form-input-material">
-            <input type="number" id="valor_servicio" name="valor_servicio" step="0.01" placeholder=" " required>
             <label for="valor_servicio">Valor del Servicio</label>
-        </div>
-
-        <!-- Fecha -->
-        <div class="form-input-material">
-            <input type="date" id="fecha_tramite" name="fecha_tramite" placeholder=" " required>
-            <label for="fecha_tramite">Fecha de Trámite</label>
+            <input type="number" id="valor_servicio" name="valor_servicio" step="0.01" required>
         </div>
 
         <!-- Estado -->
         <div class="form-input-material">
+                        <label for="estado">Estado</label>
+
             <select name="estado" id="estado" required>
                 <option value="" disabled selected hidden>Selecciona un estado</option>
                 <option value="pendiente">Pendiente</option>
                 <option value="completado">Completado</option>
                 <option value="cancelado">Cancelado</option>
             </select>
-            <label for="estado">Estado</label>
         </div>
 
         <!-- Método de pago -->
         <div class="form-input-material">
+            <label for="metodo_pago">Método de pago</label>
             <select name="metodo_pago" id="metodo_pago" required>
                 <option value="" disabled selected hidden>Selecciona un método</option>
                 <option value="efectivo">Efectivo</option>
@@ -88,8 +84,8 @@ if ($id_cliente > 0) {
                 <option value="tarjeta">Tarjeta</option>
                 <option value="otro">Otro</option>
             </select>
-            <label for="metodo_pago">Método de pago</label>
         </div>
+
 
         <!-- Descripción -->
         <div class="form-input-material">
@@ -245,37 +241,6 @@ document.getElementById("form-crear-recibo").addEventListener("submit", async fu
         alert("Error inesperado en la solicitud.");
     }
 });
-</script>
-
-    <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const inputs = document.querySelectorAll(".form-input-material input[type='text'], .form-input-material input[type='number'], .form-input-material input[type='date'], .form-input-material textarea, .form-input-material select");
-
-  inputs.forEach(input => {
-    // Activar clase si el campo ya tiene valor (por value=)
-    if (input.value.trim() !== "") {
-      input.classList.add("input-activo");
-    }
-
-    // Escuchar cambios para activar o quitar clase
-    input.addEventListener("input", () => {
-      if (input.value.trim() !== "") {
-        input.classList.add("input-activo");
-      } else {
-        input.classList.remove("input-activo");
-      }
-    });
-
-    // También aplicar al cambiar select manualmente
-    input.addEventListener("change", () => {
-      if (input.value.trim() !== "") {
-        input.classList.add("input-activo");
-      } else {
-        input.classList.remove("input-activo");
-      }
-    });
-  });
-});
-</script>
+</script>   
 
 </div>

@@ -1,72 +1,51 @@
 .hero-header {
-    background: url('http://www.autodatz.com/wp-content/uploads/2017/05/Old-Car-Wallpapers-Hd-36-with-Old-Car-Wallpapers-Hd.jpg') no-repeat center center;
+    background-color: #1C1C1E;
     background-size: cover;
     background-attachment: fixed;
     text-align: center;
     width: 100%;
     position: relative;
     overflow: hidden;
-    border-radius: 0 0 85% 85% / 30%;
-    height: 250px;              /* ✅ Altura base necesaria */
-    transition: all 0.4s ease;  /* ✅ Transición para suavizar el cambio */
+    border-radius: 0;              /* ❌ Quita curvatura */
+    height: 100px;                /* ✅ Mucho más angosto */
+    transition: all 0.4s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .hero-header .overlay {
     width: 100%;
     height: 100%;
-    padding: 5px;
+    padding: 0 20px;
     color: #FFF;
     text-shadow: 1px 1px 1px #333;
-    background: url('../fondo_inicio.png') no-repeat center center;
+    background-color: #020420;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.3s ease;
 }
 
+/* Título dentro del header */
 .hero-title {
     font-family: 'Dancing Script', cursive;
     font-size: 55px;
-    margin-bottom: 10px;
-    transition: font-size 0.3s ease, margin 0.3s ease;
+    margin: 0;
 }
 
-.hero-subtitle, .hero-text {
-    font-family: 'Open Sans', sans-serif;
-    margin-bottom: 10px;
-    transition: opacity 0.3s ease;
-}
-
+/* Elimina subtítulos y otros elementos si no los usarás */
+.hero-subtitle,
+.hero-text,
 .hero-button {
-    border: none;
-    outline: none;
-    padding: 10px 20px;
-    border-radius: 50px;
-    color: #333;
-    background: #fff;
-    margin-bottom: 50px;
-    box-shadow: 0 3px 20px 0 #0000003b;
-    transition: 0.3s ease all;
-}
-.hero-button:hover {
-    cursor: pointer;
-    transform: scale(1.05);
+    display: none !important;
 }
 
-/* --- Modo reducido con scroll --- */
+/* Modo reducido por scroll (opcional si sigues usándolo) */
 .hero-header.shrink {
-    border-radius: 0;
-    height: 100px; /* o el tamaño reducido que prefieras */
-}
-
-.hero-header.shrink .overlay {
-    padding: 10px;
+    height: 70px;
 }
 
 .hero-header.shrink .hero-title {
-    font-size: 24px;
-    margin-bottom: 0;
-}
-
-.hero-header.shrink .hero-subtitle,
-.hero-header.shrink .hero-text,
-.hero-header.shrink .hero-button {
-    display: none;
+    font-size: 20px;
 }

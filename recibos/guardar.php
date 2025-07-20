@@ -6,7 +6,6 @@ $id_asesor = $_POST['id_asesor'] ?? null;
 $id_vehiculo = $_POST['id_vehiculo'] ?? null;
 $concepto_servicio = $_POST['concepto_servicio'] ?? null;
 $valor_servicio = $_POST['valor_servicio'] ?? null;
-$fecha_tramite = $_POST['fecha_tramite'] ?? null;
 $estado = $_POST['estado'] ?? null;
 $descripcion_servicio = $_POST['descripcion_servicio'] ?? null;
 $metodo_pago = $_POST['metodo_pago'] ?? null;
@@ -15,25 +14,23 @@ $metodo_pago = $_POST['metodo_pago'] ?? null;
 $id_asesor = $id_asesor === '' ? null : $id_asesor;
 
 $sql = "INSERT INTO recibos 
-(id_cliente, id_asesor, id_vehiculo, concepto_servicio, valor_servicio, fecha_tramite, estado, descripcion_servicio, metodo_pago)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+(id_cliente, id_asesor, id_vehiculo, concepto_servicio, valor_servicio, estado, descripcion_servicio, metodo_pago)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
 $stmt = $conn->prepare($sql);
 
 if ($stmt) {
     $stmt->bind_param(
-        "iiissssss",
+        "iiisssss",
         $id_cliente,
         $id_asesor,
         $id_vehiculo,
         $concepto_servicio,
         $valor_servicio,
-        $fecha_tramite,
         $estado,
         $descripcion_servicio,
         $metodo_pago
     );
-
     if ($stmt->execute()) {
         echo "ok";
     } else {
