@@ -29,22 +29,19 @@
     table-layout: fixed; /* o auto, según preferencia de ajuste */
     }
   .members input[type="text"] {
-    width: 100%;
-    box-sizing: border-box;
-      color: #fff; /* texto blanco */
-    text-shadow:
-      -1px -1px 0 #000,
-      1px -1px 0 #000,
-      -1px  1px 0 #000,
-      1px  1px 0 #000; /* contorno negro */
-    }
+      width: 100%;
+      box-sizing: border-box;
+      color: #040404; /* Color del texto (negro) */
+      
+      /* Contorno blanco de 1px */
+      text-shadow: 
+          -1px -1px 0 #ffffff,  
+          1px -1px 0 #ffffff,
+          -1px  1px 0 #ffffff,
+          1px  1px 0 #ffffff;
+  }
   .members td {
-    color: #fff; /* texto blanco */
-      text-shadow:
-        -1px -1px 0 #000,
-        1px -1px 0 #000,
-        -1px  1px 0 #000,
-        1px  1px 0 #000; /* contorno negro */
+    color: #040404; /* texto blanco */
     }   
         /* Animación suave para ocultar filas */
         tr.oculto {
@@ -96,7 +93,7 @@
     background: var(--selected);
     td,
     input {
-      color: canvasText;
+      color:black;;
     }
   }
   thead {

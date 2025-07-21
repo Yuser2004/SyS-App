@@ -4,7 +4,7 @@
     include __DIR__ . '/../models/conexion.php';
 
     $sql = "
-        SELECT v.id_vehiculo, v.placa, c.nombre_completo
+        SELECT v.id_vehiculo, v.placa, c.nombre_completo, c.id_cliente
         FROM vehiculo v
         INNER JOIN clientes c ON v.id_cliente = c.id_cliente
     ";
@@ -45,8 +45,14 @@
                             <a href="#" class="btnfos btnfos-3" title="Editar vehículo" onclick="editarVehiculo(<?= $row['id_vehiculo'] ?>); return false;">
                                 <img src="editar.png" alt="Editar" style="width: 40px; height: 40px;">
                             </a>
+
                             <a href="#" class="btnfos btnfos-3" title="Eliminar vehículo" onclick="eliminarVehiculo(<?= $row['id_vehiculo'] ?>); return false;">
                                 <img src="eliminar.png" alt="Eliminar" style="width: 40px; height: 40px;">
+                            </a>
+                            
+                            <a href="#" class="btnfos btnfos-3" title="Crear Recibo para este Vehículo" 
+                                onclick="cargarContenido('recibos/views/crear.php?id_cliente=<?= $row['id_cliente'] ?>&id_vehiculo=<?= $row['id_vehiculo'] ?>&origen=vehiculos'); return false;">
+                                <img src="nuevo_recibo.png" alt="Crear Recibo" style="width: 40px; height: 40px;">
                             </a>
                         </td>
 

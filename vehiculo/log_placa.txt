@@ -11,3 +11,6 @@ Placa: 234YUI | ID: 0
 Placa: 890UIO | ID: 0
 Placa: SDF678 | ID: 0
 Placa: GHJ567 | ID: 0
+Placa: NLK567 | ID: 0
+Placa: TYU567 | ID: 0
+Placa: POI098 | ID: 0

@@ -64,7 +64,7 @@ $recibos = $conn->query("
         <col style="width: auto;">
         <col style="width: auto;">
         <col style="width: 60px;">
-        <col style="width: 100px;"> <!-- Acciones con botones -->
+        <col style="width: 135px;"> <!-- Acciones con botones -->
         </colgroup>
         <thead>
             <tr>
@@ -108,12 +108,17 @@ $recibos = $conn->query("
                             onclick="eliminarRecibo(<?= $recibo['id'] ?>)"
                             title="Eliminar Recibo">
                                 <img src="eliminar.png" alt="Eliminar" style="width: 40px; height: 40px;">
-                            </a> --> <!-- No eliminar recibo, tener en cuenta para un futuro -->
-                            
+                                                    </a> --> <!-- No eliminar recibo, tener en cuenta para un futuro -->
+                            <a href="#"
+                                class="btnfos btnfos-3"
+                                onclick="verFactura(<?= $recibo['id'] ?>)"
+                                title="Ver Factura del Recibo">
+                                <img src="verfactura.jpg" alt="Factura" style="width: 40px; height: 40px;">
+                            </a>    
                             <a href="#"
                             class="btnfos btnfos-3"
                             onclick="verEgresos(<?= $recibo['id'] ?>)"
-                            title="Ver Egresos del Recibo">
+                            title="Añadir Egreso">
                                 <img src="finanzas.png" alt="Egresos" style="width: 40px; height: 40px;">
                             </a>
                         </td>
@@ -125,116 +130,112 @@ $recibos = $conn->query("
         </tbody>
     </table>
 </div>
-
 <script>
-function eliminarRecibo(id) {
-    if (!confirm("¿Estás seguro de eliminar este recibo?")) return;
+    // =======================================================
+    //  FUNCIONES PARA MODALES Y ACCIONES
+    // =======================================================
 
-    fetch("recibos/eliminar.php", {
-        method: "POST",
-        body: new URLSearchParams({ id })
-    })
-    .then(res => res.text())
-    .then(resp => {
-        if (resp.trim() === "ok") {
-            cargarContenido('recibos/views/lista.php');
-        } else {
-            alert("Error al eliminar: " + resp);
-        }
-    })
-    .catch(err => alert("Error de red: " + err));
-}
-
-
-function verEgresos(id) {
-    fetch(`recibos/views/egresos_modal.php?id=${id}`)
+    function eliminarRecibo(id) {
+        if (!confirm("¿Estás seguro de eliminar este recibo?")) return;
+        fetch("recibos/eliminar.php", {
+            method: "POST",
+            body: new URLSearchParams({ id })
+        })
         .then(res => res.text())
-        .then(html => {
-            // Crear contenedor temporal
-            const tempDiv = document.createElement("div");
-            tempDiv.innerHTML = html;
-
-            // Extraer el modal
-            const modalEl = tempDiv.querySelector(".modal");
-            if (modalEl) {
-                document.body.appendChild(modalEl);
-
-                // Inicializar y mostrar con Bootstrap
-                const modal = new bootstrap.Modal(modalEl);
-                modal.show();
-
-                // Remover el modal del DOM al cerrarse
-                modalEl.addEventListener('hidden.bs.modal', () => {
-                    modalEl.remove();
-                });
+        .then(resp => {
+            if (resp.trim() === "ok") {
+                cargarContenido('recibos/views/lista.php');
             } else {
-                console.error("No se encontró el modal en el HTML cargado");
+                alert("Error al eliminar: " + resp);
             }
         })
-        .catch(err => {
-            console.error("Error al cargar el modal:", err);
-        });
-}
-</script>
-<script>
-    // --- OBTENER REFERENCIAS A LOS ELEMENTOS ---
-    const filtroEstado = document.getElementById('filtroEstado');
-    const fechaDesdeInput = document.getElementById('fechaDesde');
-    const fechaHastaInput = document.getElementById('fechaHasta');
-    const tablaRecibosBody = document.getElementById('tabla-recibos');
-    const filas = tablaRecibosBody.getElementsByTagName('tr');
+        .catch(err => alert("Error de red: " + err));
+    }
 
-    // --- FUNCIÓN CENTRAL DE FILTRADO ---
-    // Esta función se encarga de aplicar TODOS los filtros a la vez.
+    function verEgresos(id) {
+        fetch(`recibos/views/egresos_modal.php?id=${id}`)
+            .then(res => res.text())
+            .then(html => {
+                const tempDiv = document.createElement("div");
+                tempDiv.innerHTML = html;
+                const modalEl = tempDiv.querySelector(".modal");
+                if (modalEl) {
+                    document.body.appendChild(modalEl);
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                    modalEl.addEventListener('hidden.bs.modal', () => modalEl.remove());
+                }
+            });
+    }
+
+
+        function verFactura(id) {
+            // La ruta al nuevo archivo de impresión.
+            const url = `recibos/views/impresion.php?id=${id}`;
+            
+            // Abre la URL en una nueva pestaña del navegador.
+            window.open(url, '_blank');
+        }
+
+    // =======================================================
+    //  LÓGICA UNIFICADA DE FILTROS
+    // =======================================================
+
+    // --- Referencias a TODOS los elementos de filtro ---
+    var filtroEstado = document.getElementById('filtroEstado');
+    var fechaDesdeInput = document.getElementById('fechaDesde');
+    var fechaHastaInput = document.getElementById('fechaHasta');
+    var buscadorInput = document.getElementById('buscador'); // El nuevo buscador
+    var tablaRecibosBody = document.getElementById('tabla-recibos');
+    var filas = tablaRecibosBody.getElementsByTagName('tr');
+
+    // --- Función MAESTRA que aplica TODOS los filtros ---
     function aplicarFiltros() {
-        // 1. Obtener los valores actuales de todos los filtros
+        // 1. Obtener los valores de todos los filtros
         const estadoSeleccionado = filtroEstado.value.toLowerCase().trim();
-        
-        // Convertimos las fechas de los inputs a objetos Date para poder comparar.
-        // Si un input está vacío, su valor será null.
+        const textoBusqueda = buscadorInput.value.toLowerCase().trim();
         const fechaDesde = fechaDesdeInput.value ? new Date(fechaDesdeInput.value + 'T00:00:00') : null;
         const fechaHasta = fechaHastaInput.value ? new Date(fechaHastaInput.value + 'T23:59:59') : null;
 
-        // 2. Recorrer todas las filas para decidir si se muestran u ocultan
+        // 2. Recorrer las filas y aplicar la lógica
         for (const fila of filas) {
-            // --- Lectura de datos de la fila ---
-            const celdaEstado = fila.cells[7];
             const celdaFecha = fila.cells[1];
-            
-            if (celdaEstado && celdaFecha) {
-                // Obtenemos el estado de la fila
+            const celdaCliente = fila.cells[2];
+            const celdaPlaca = fila.cells[3];
+            const celdaAsesor = fila.cells[5];
+            const celdaEstado = fila.cells[7];
+
+            if (celdaCliente && celdaPlaca && celdaAsesor && celdaEstado && celdaFecha) {
+                // --- Lógica de decisión: una fila debe cumplir TODO para ser visible ---
+                
+                // Condición 1: Estado
                 const estadoFila = celdaEstado.querySelector('input').value.toLowerCase().trim();
-
-                // Obtenemos y parseamos la fecha de la fila (formato dd/mm/YYYY)
-                const fechaFilaTexto = celdaFecha.querySelector('input').value;
-                const partesFecha = fechaFilaTexto.split('/'); // [dd, mm, YYYY]
-                const fechaFila = new Date(`${partesFecha[2]}-${partesFecha[1]}-${partesFecha[0]}`);
-
-                // --- Lógica de decisión ---
-                // Una fila debe cumplir ambas condiciones para ser visible.
-                
-                // Condición 1: El estado coincide
                 const cumpleEstado = (estadoSeleccionado === "" || estadoFila === estadoSeleccionado);
-                
-                // Condición 2: La fecha está en el rango
-                const cumpleFecha = 
-                    (!fechaDesde || fechaFila >= fechaDesde) && 
-                    (!fechaHasta || fechaFila <= fechaHasta);
 
-                // Decisión Final: Si cumple ambas, se muestra. Si no, se oculta.
-                if (cumpleEstado && cumpleFecha) {
-                    fila.style.display = "";
+                // Condición 2: Fechas
+                const fechaFilaTexto = celdaFecha.querySelector('input').value;
+                const partesFecha = fechaFilaTexto.split('/');
+                const fechaFila = new Date(`${partesFecha[2]}-${partesFecha[1]}-${partesFecha[0]}`);
+                const cumpleFecha = (!fechaDesde || fechaFila >= fechaDesde) && (!fechaHasta || fechaFila <= fechaHasta);
+                
+                // Condición 3: Búsqueda de texto (en cliente, placa y asesor)
+                const textoFila = `${celdaCliente.querySelector('input').value} ${celdaPlaca.querySelector('input').value} ${celdaAsesor.querySelector('input').value}`.toLowerCase();
+                const cumpleBusqueda = textoFila.includes(textoBusqueda);
+
+                // --- Decisión Final ---
+                if (cumpleEstado && cumpleFecha && cumpleBusqueda) {
+                    fila.style.display = ""; // Mostrar
                 } else {
-                    fila.style.display = "none";
+                    fila.style.display = "none"; // Ocultar
                 }
             }
         }
     }
 
-    // --- AÑADIR LOS EVENT LISTENERS ---
-    // Le decimos al navegador que ejecute nuestra función central cuando CUALQUIER filtro cambie.
+    // --- Añadir los Event Listeners a TODOS los filtros ---
     filtroEstado.addEventListener('change', aplicarFiltros);
     fechaDesdeInput.addEventListener('change', aplicarFiltros);
     fechaHastaInput.addEventListener('change', aplicarFiltros);
+    buscadorInput.addEventListener('input', aplicarFiltros); // 'input' es mejor para búsqueda en vivo
 
 </script>
