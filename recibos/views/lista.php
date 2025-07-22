@@ -64,7 +64,7 @@ $recibos = $conn->query("
         <col style="width: auto;">
         <col style="width: auto;">
         <col style="width: 60px;">
-        <col style="width: 135px;"> <!-- Acciones con botones -->
+        <col style="width: 180px;"> <!-- Acciones con botones -->
         </colgroup>
         <thead>
             <tr>
@@ -102,13 +102,6 @@ $recibos = $conn->query("
                             title="Editar Recibo">
                                 <img src="editar.png" alt="Editar" style="width: 40px; height: 40px;">
                             </a>
-                            
-<!--                             <a href="#"
-                            class="btnfos btnfos-3"
-                            onclick="eliminarRecibo(<?= $recibo['id'] ?>)"
-                            title="Eliminar Recibo">
-                                <img src="eliminar.png" alt="Eliminar" style="width: 40px; height: 40px;">
-                                                    </a> --> <!-- No eliminar recibo, tener en cuenta para un futuro -->
                             <a href="#"
                                 class="btnfos btnfos-3"
                                 onclick="verFactura(<?= $recibo['id'] ?>)"
@@ -121,6 +114,10 @@ $recibos = $conn->query("
                             title="Añadir Egreso">
                                 <img src="finanzas.png" alt="Egresos" style="width: 40px; height: 40px;">
                             </a>
+                            <a href="#" class="btnfos btnfos-3" title="Ver Recibo" 
+                            onclick="cargarContenido('recibos/views/detalle_recibo.php?id=<?= $recibo['id'] ?>'); return false;">
+                                <img src="ver_recibo.jpeg" alt="Ver Detalle" style="width: 40px; height: 40px;">
+                            </a>    
                         </td>
                     </tr>
                 <?php endwhile; ?>

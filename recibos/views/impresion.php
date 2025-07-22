@@ -16,13 +16,9 @@ if ($recibo_id > 0) {
     $stmt = $conn->prepare("
         SELECT 
             r.id, r.fecha_tramite, r.valor_servicio, r.concepto_servicio, r.metodo_pago,
-            c.nombre_completo AS cliente_nombre, c.documento AS cliente_documento, c.telefono AS cliente_celular,
-            v.placa,
-            a.nombre AS asesor_nombre, a.documento AS asesor_documento
+            c.nombre_completo AS cliente_nombre, c.documento AS cliente_documento, c.telefono AS cliente_celular, c.direccion AS cliente_direccion, c.ciudad AS cliente_ciudad
         FROM recibos r
         LEFT JOIN clientes c ON r.id_cliente = c.id_cliente
-        LEFT JOIN vehiculo v ON r.id_vehiculo = v.id_vehiculo
-        LEFT JOIN asesor a ON r.id_asesor = a.id_asesor
         WHERE r.id = ?
     ");
     $stmt->bind_param("i", $recibo_id);
@@ -42,91 +38,183 @@ if (!$recibo) {
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Recibo N.º <?= htmlspecialchars($recibo['id']) ?></title>
-  <style>
-    :root {
-      --morado-principal: #5b3e91;
-      --verde-limon: #d0f145;
-      --azul-suave: #e6f2fb;
-      --borde-suave: #dce9f3;
-      --gris-texto: #333;
-    }
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 800px; margin: 20px auto; padding: 0; background: #f9f9f9; border: 1px solid var(--borde-suave); box-shadow: 0 0 15px rgba(0, 0, 0, 0.05); }
-    .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 25px; background: white; border-bottom: 3px solid #5b3e91; }
-    .logo-titulo { font-family: 'Alatsi', sans-serif; font-size: 36px; color: #5b3e91; text-shadow: 2px 2px #d0f145; font-weight: bold; }
-    .info-izq { flex: 1; }
-    .info-centro { flex: 2; text-align: center; }
-    .info-der { flex: 1; text-align: right; font-size: 13px; }
-    .contacto { font-size: 13px; line-height: 1.4; }
-    .nombre-firma { font-family: 'Great Vibes', cursive; font-size: 18px; font-weight: bold; color: #2c2c2c; }
-    .subfirma { font-style: italic; font-size: 13px; }
-    .contenido { padding: 30px; }
-    h2 { text-align: center; color: var(--morado-principal); margin-top: 0; font-size: 1.5em; }
-    .seccion { border-radius: 8px; padding: 15px 20px; margin-top: 25px; border: 1px solid var(--borde-suave); }
-    .info-cliente { background-color: #f5f7ff; }
-    .detalle-servicio { background-color: #f0f8ff; border-top: 3px solid var(--morado-principal); border-bottom: 3px solid var(--morado-principal); }
-    .footer { background-color: #eef7fc; text-align: center; color: var(--gris-texto); font-size: 0.9em; margin-top: 40px; padding: 10px; border-top: 1px solid var(--borde-suave); }
-    p { margin: 8px 0; font-size: 1rem; }
-    strong { color: var(--morado-principal); }
-    .resaltado { font-weight: bold; color: var(--morado-principal); }
-    .titulo-seccion { margin-bottom: 10px; font-size: 1.2rem; color: var(--morado-principal); border-bottom: 1px solid #ccc; padding-bottom: 5px; }
-    .fila-doble { display: flex; gap: 20px; }
-    .columna { flex: 1; }
-  </style>
+    <meta charset="UTF-8">
+    <title>Recibo N.º <?= htmlspecialchars($recibo['id']) ?></title>
+    <style>
+        /* Estilos generales */
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            background: #fff;
+        }
+        .recibo-container {
+            border: 2px solid #4CAF50;
+        }
+
+        /* --- Estilos para el Encabezado --- */
+        .recibo-header {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 2px solid #4CAF50;
+        }
+        .header-col {
+            flex: 1;
+            padding: 0 10px;
+        }
+        .header-col.col-izquierda {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 10px;
+        }
+        .col-izquierda .logo {
+            max-width: 150px;
+            margin-bottom: 0;
+        }
+        .titulo-empresa {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+            color: #0077be;
+            text-shadow:
+                -1px -1px 0 #2E8B57,  
+                 1px -1px 0 #2E8B57,
+                -1px  1px 0 #2E8B57,
+                 1px  1px 0 #2E8B57;
+        }
+        .col-centro {
+            text-align: center;
+            font-size: 11px;
+            line-height: 1.3;
+            border-left: 1px solid #eee;
+            border-right: 1px solid #eee;
+        }
+        .col-centro p { margin: 2px 0; }
+        .nombre-cursiva { font-family: 'Brush Script MT', cursive; font-size: 18px; }
+        .col-derecha { text-align: center; }
+        .col-derecha h2 { margin: 0 0 10px 0; color: red; font-size: 20px; }
+        .recibo-info { font-weight: bold; }
+
+        /* --- Estilos para el Cuerpo del Recibo --- */
+        .recibo-body-container {
+            padding: 10px;
+        }
+        .recibo-body {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        .recibo-body td {
+            border: 1px solid #4CAF50; /* Líneas verdes */
+            padding: 8px;
+            vertical-align: top;
+        }
+        .label {
+            display: block;
+            font-size: 10px;
+            color: #555;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+        .data { font-weight: bold; }
+        .valor-cell { text-align: right; }
+        .data-valor { font-weight: bold; font-size: 16px; }
+        .forma-pago div { display: flex; gap: 20px; margin-top: 5px; }
+        .fila-final td { height: 80px; }
+    </style>
 </head>
 <body>
 
-  <div class="header">
-    <div class="info-izq contacto"><div>NIT. 30347736-1</div></div>
-    <div class="info-centro">
-      <div class="logo-titulo">Seguros & Servicios <span style="font-size: 16px;">S&amp;S</span></div>
-      <div class="contacto">
-        CELS. CEL 314 7015664 &nbsp;&nbsp; TEL.839 0433<br>
-        CALLE 10 No.5-04 NIVEL 2 LA DORADA, CALDAS<br>
-        <span style="text-transform: lowercase;">serviciosysegurosla10@hotmail.com</span>
-      </div>
-    </div>
-    <div class="info-der">
-      <div><strong>SOAT DE CARROS Y MOTOS</strong></div>
-      <div>Trámites de Tránsito<br>y Transporte en todo el país</div>
-      <div class="nombre-firma">Alba Nidia Pinzón P.</div>
-      <div class="subfirma">Rapidez y Responsabilidad</div>
-    </div>
-  </div>
-
-  <div class="contenido">
-    <h2>Recibo N.º <span class="resaltado"><?= htmlspecialchars($recibo['id']) ?></span></h2>
-
-    <div class="seccion fila-doble">
-      <div class="columna info-cliente">
-        <div class="titulo-seccion">Datos del Cliente</div>
-        <p><strong>Nombre:</strong> <span><?= htmlspecialchars($recibo['cliente_nombre']) ?></span></p>
-        <p><strong>Identificación:</strong> <span><?= htmlspecialchars($recibo['cliente_documento']) ?></span></p>
-        <p><strong>Celular:</strong> <span><?= htmlspecialchars($recibo['cliente_celular']) ?></span></p>
-      </div>
-
-      <div class="columna detalle-servicio">
-        <div class="titulo-seccion">Detalle del Servicio</div>
-        <p><strong>Placa:</strong> <span><?= htmlspecialchars($recibo['placa']) ?></span></p>
-        <p><strong>Concepto:</strong> <span><?= htmlspecialchars($recibo['concepto_servicio']) ?></span></p>
-        <p><strong>Valor:</strong> $<span><?= number_format($recibo['valor_servicio'], 0, ',', '.') ?></span></p>
-        <p><strong>Valor en letras:</strong> <span><?= NumeroALetras::convertir($recibo['valor_servicio']) ?></span></p>
-        <p><strong>Método de Pago:</strong> <span><?= htmlspecialchars(ucfirst($recibo['metodo_pago'])) ?></span></p>
-      </div>
+<div class="recibo-container">
+    <div class="recibo-header">
+        <div class="header-col col-izquierda">
+            <img src="/SyS-app/SySlogo.png" alt="Logo S&S" class="logo">
+            <h1 class="titulo-empresa">Seguros & Servicios</h1>
+        </div>
+        <div class="header-col col-centro">
+            <p><strong>NIT. 30347736-1</strong></p>
+            <p>CELS. 314 7015664 | TEL. 839 0433</p>
+            <p>CALLE 10 No.5-04 NIVEL 2 LA DORADA, CALDAS</p>
+            <p>serviciosysegurosla10@hotmail.com</p>
+            <hr style="border-color: #eee; margin: 5px 0;">
+            <p>SOAT DE CARROS Y MOTOS</p>
+            <p>Trámites de Tránsito y Transporte</p>
+            <p class="nombre-cursiva">Alba Nidia Pinzón P.</p>
+        </div>
+        <div class="header-col col-derecha">
+            <h2>RECIBO DE CAJA</h2>
+            <p class="recibo-info">No. <?= htmlspecialchars($recibo['id']) ?></p>
+            <p class="recibo-info">Fecha: <?= date('d/m/Y', strtotime($recibo['fecha_tramite'])) ?></p>
+        </div>
     </div>
 
-    <div class="seccion info-cliente">
-      <div class="titulo-seccion">Datos del Asesor</div>
-      <p><strong>Nombre:</strong> <span><?= htmlspecialchars($recibo['asesor_nombre']) ?></span></p>
-      <p><strong>Identificación:</strong> <span><?= htmlspecialchars($recibo['asesor_documento']) ?></span></p>
+    <div class="recibo-body-container">
+        <table class="recibo-body">
+            <tr>
+                <td colspan="3">
+                    <span class="label">Ciudad y Fecha:</span>
+                    <span class="data"><?= htmlspecialchars($recibo['cliente_ciudad'] ?? 'La Dorada') ?>, <?= date('d/m/Y', strtotime($recibo['fecha_tramite'])) ?></span>
+                </td>
+                <td class="valor-cell">
+                    <span class="label">Valor $</span>
+                    <span class="data-valor">$<?= number_format($recibo['valor_servicio'], 0, ',', '.') ?></span>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3">
+                    <span class="label">Recibido de:</span>
+                    <span class="data"><?= htmlspecialchars($recibo['cliente_nombre']) ?></span>
+                </td>
+                <td>
+                    <span class="label">C.C.</span>
+                    <span class="data"><?= htmlspecialchars($recibo['cliente_documento']) ?></span>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3">
+                    <span class="label">Dirección:</span>
+                    <span class="data"><?= htmlspecialchars($recibo['cliente_direccion']) ?></span>
+                </td>
+                <td>
+                    <span class="label">Teléfono:</span>
+                    <span class="data"><?= htmlspecialchars($recibo['cliente_celular']) ?></span>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="4">
+                    <span class="label">La Suma de:</span>
+                    <span class="data"><?= NumeroALetras::convertir($recibo['valor_servicio']) ?> MCTE.</span>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="4">
+                    <span class="label">Por Concepto de:</span>
+                    <span class="data"><?= htmlspecialchars($recibo['concepto_servicio']) ?></span>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="4" class="forma-pago">
+                    <span class="label">Forma de Pago:</span>
+                    <div>
+                        <input type="checkbox" <?= ($recibo['metodo_pago'] == 'efectivo') ? 'checked' : '' ?> disabled> EFECTIVO
+                        <input type="checkbox" <?= ($recibo['metodo_pago'] == 'transferencia') ? 'checked' : '' ?> disabled> BANCO
+                        <input type="checkbox" <?= ($recibo['metodo_pago'] == 'tarjeta') ? 'checked' : '' ?> disabled> T. CRÉDITO
+                    </div>
+                </td>
+            </tr>
+            <tr class="fila-final">
+                <td colspan="3">
+                    <span class="label">Observaciones:</span>
+                </td>
+                <td>
+                    <span class="label">Firma y Sello:</span>
+                </td>
+            </tr>
+        </table>
     </div>
-
-    <div class="seccion footer">
-      <p>Gracias por preferirnos</p>
-      <p>Fecha del trámite: <span><?= date('d/m/Y', strtotime($recibo['fecha_tramite'])) ?></span></p>
-    </div>
-  </div>
+</div>
 
 </body>
 </html>

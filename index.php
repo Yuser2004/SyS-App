@@ -91,6 +91,9 @@
                     <li>
                         <span onclick="cargarContenido('asesor/views/lista_asesor.php')">👤 Asesores</span>
                     </li>
+                    <li>
+                        <span onclick="cargarContenido('finanzas/views/reporte.php')">Finanzas</span>
+                    </li>
                 </ul>
             </nav>
 
@@ -108,22 +111,81 @@
                     .then(html => {
                         const contenedor = document.getElementById('contenido');
                         contenedor.innerHTML = html;
-
-                        // Ejecutar scripts embebidos del fragmento
-                        const tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = html;
-                        const scripts = tempDiv.querySelectorAll('script');
-                        scripts.forEach(script => {
-                            const nuevoScript = document.createElement('script');
-                            if (script.src) {
-                                nuevoScript.src = script.src;
-                            } else {
-                                nuevoScript.textContent = script.textContent;
-                            }
-                            document.body.appendChild(nuevoScript);
-                        });
+                        inicializarReporteFinanciero();
                     })
                     .catch(error => console.error('Error al cargar contenido:', error));
+            }
+        </script>
+        <script>
+            function inicializarReporteFinanciero() {
+                // Busca los elementos del reporte en la página
+                const fechaDesdeInput = document.getElementById('fecha_desde');
+                const fechaHastaInput = document.getElementById('fecha_hasta');
+
+                // Si los elementos no existen (porque no estamos en la vista de reporte), no hace nada.
+                if (!fechaDesdeInput || !fechaHastaInput) {
+                    return;
+                }
+
+                const formatoMoneda = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
+
+                async function actualizarReporte() {
+                    // Referencias a los elementos que se van a actualizar
+                    const rangoFechasTitulo = document.getElementById('rango-fechas-titulo');
+                    const resumenIngresos = document.getElementById('resumen-ingresos');
+                    const resumenEgresos = document.getElementById('resumen-egresos');
+                    const resumenGastos = document.getElementById('resumen-gastos');
+                    const resumenUtilidad = document.getElementById('resumen-utilidad');
+                    const porcentajeEgresos = document.getElementById('porcentaje-egresos');
+                    const porcentajeGastos = document.getElementById('porcentaje-gastos');
+                    const porcentajeUtilidad = document.getElementById('porcentaje-utilidad');
+                    const cuerpoTablaDetalle = document.getElementById('cuerpo-tabla-detalle');
+
+                    const fechaDesde = fechaDesdeInput.value;
+                    const fechaHasta = fechaHastaInput.value;
+
+                    const response = await fetch(`finanzas/views/api_reporte.php?fecha_desde=${fechaDesde}&fecha_hasta=${fechaHasta}`);
+                    const data = await response.json();
+
+                    // Lógica para actualizar el HTML (sin cambios)
+                    const ingresos = data.resumen.total_ingresos;
+                    resumenIngresos.textContent = formatoMoneda.format(ingresos);
+                    resumenEgresos.textContent = formatoMoneda.format(data.resumen.total_egresos);
+                    resumenGastos.textContent = formatoMoneda.format(data.resumen.total_gastos);
+                    resumenUtilidad.textContent = formatoMoneda.format(data.resumen.utilidad_final);
+                    
+                    if (ingresos > 0) {
+                        porcentajeEgresos.textContent = `(${(data.resumen.total_egresos / ingresos * 100).toFixed(1)}% del Ingreso)`;
+                        porcentajeGastos.textContent = `(${(data.resumen.total_gastos / ingresos * 100).toFixed(1)}% del Ingreso)`;
+                        porcentajeUtilidad.textContent = `(${(data.resumen.utilidad_final / ingresos * 100).toFixed(1)}% del Ingreso)`;
+                    } else {
+                        porcentajeEgresos.textContent = '(0% del Ingreso)';
+                        porcentajeGastos.textContent = '(0% del Ingreso)';
+                        porcentajeUtilidad.textContent = '(0% del Ingreso)';
+                    }
+
+                    const fechaDesdeFormato = new Date(fechaDesde + 'T00:00:00').toLocaleDateString('es-CO');
+                    const fechaHastaFormato = new Date(fechaHasta + 'T00:00:00').toLocaleDateString('es-CO');
+                    rangoFechasTitulo.textContent = `${fechaDesdeFormato} - ${fechaHastaFormato}`;
+                    
+                    cuerpoTablaDetalle.innerHTML = '';
+                    if (data.detalle.length > 0) {
+                        data.detalle.forEach(fila => {
+                            const gananciaDiaria = fila.ingresos_diarios - fila.egresos_diarios;
+                            const fechaFormato = new Date(fila.fecha + 'T00:00:00').toLocaleDateString('es-CO');
+                            cuerpoTablaDetalle.innerHTML += `<tr><td>${fechaFormato}</td><td class="monto-ingreso">${formatoMoneda.format(fila.ingresos_diarios)}</td><td class="monto-egreso">${formatoMoneda.format(fila.egresos_diarios)}</td><td class="monto-neto">${formatoMoneda.format(gananciaDiaria)}</td></tr>`;
+                        });
+                    } else {
+                        cuerpoTablaDetalle.innerHTML = '<tr><td colspan="4" style="text-align: center;">No hay transacciones en el período seleccionado.</td></tr>';
+                    }
+                }
+
+                // Añadimos los escuchadores de eventos
+                fechaDesdeInput.addEventListener('change', actualizarReporte);
+                fechaHastaInput.addEventListener('change', actualizarReporte);
+
+                // Llamamos a la función una vez para cargar los datos iniciales
+                actualizarReporte();
             }
         </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

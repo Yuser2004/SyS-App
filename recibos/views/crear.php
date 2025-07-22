@@ -75,8 +75,11 @@
 
             <!-- Valor -->
             <div class="form-input-material">
-                <label for="valor_servicio">Valor del Servicio</label>
-                <input type="number" id="valor_servicio" name="valor_servicio" step="0.01" required>
+                <label for="valor_visible">Valor del Servicio</label>
+                
+                <input type="text" id="valor_visible" inputmode="numeric">
+                
+                <input type="hidden" id="valor_servicio" name="valor_servicio" required>
             </div>
 
             <!-- Estado -->
@@ -256,6 +259,30 @@
         } catch (err) {
             console.error("🔥 Error en el proceso:", err);
             alert("Error inesperado en la solicitud.");
+        }
+    });
+    // --- SCRIPT PARA FORMATEAR EL CAMPO DE VALOR MONETARIO ---
+
+    // Obtenemos referencias a los dos campos de input
+    var inputValorVisible = document.getElementById('valor_visible');
+    var inputValorReal = document.getElementById('valor_servicio');
+
+    // Añadimos un "escuchador" al campo visible que se activa cada vez que se escribe
+    inputValorVisible.addEventListener('input', function(e) {
+        // 1. Tomamos el valor actual y quitamos cualquier caracter que no sea un dígito
+        let numeroLimpio = e.target.value.replace(/[^\d]/g, '');
+
+        // 2. Actualizamos el valor del campo oculto con el número limpio
+        // Esto es lo que se enviará al servidor
+        inputValorReal.value = numeroLimpio;
+
+        // 3. Formateamos el número limpio con separadores de miles para Colombia (puntos)
+        // y lo mostramos en el campo visible. Si está vacío, no mostramos nada.
+        if (numeroLimpio) {
+            const numeroFormateado = new Intl.NumberFormat('es-CO').format(numeroLimpio);
+            e.target.value = numeroFormateado;
+        } else {
+            e.target.value = '';
         }
     });
     </script>   

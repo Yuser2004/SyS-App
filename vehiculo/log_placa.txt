@@ -14,3 +14,5 @@ Placa: GHJ567 | ID: 0
 Placa: NLK567 | ID: 0
 Placa: TYU567 | ID: 0
 Placa: POI098 | ID: 0
+Placa: QWE123 | ID: 0
+Placa: 567TYU | ID: 0
