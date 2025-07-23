@@ -56,7 +56,7 @@ if (!$recibo) {
         .recibo-header {
             display: flex;
             align-items: center;
-            padding: 15px;
+            padding: 10px;
             border-bottom: 2px solid #4CAF50;
         }
         .header-col {
@@ -108,7 +108,7 @@ if (!$recibo) {
         }
         .recibo-body td {
             border: 1px solid #4CAF50; /* Líneas verdes */
-            padding: 8px;
+            padding: 4px 8px;
             vertical-align: top;
         }
         .label {
@@ -122,7 +122,25 @@ if (!$recibo) {
         .valor-cell { text-align: right; }
         .data-valor { font-weight: bold; font-size: 16px; }
         .forma-pago div { display: flex; gap: 20px; margin-top: 5px; }
-        .fila-final td { height: 80px; }
+        .fila-final td { height: 40px; }
+/* --- ESTILOS MEJORADOS PARA LA IMPRESIÓN EN MEDIA HOJA --- */
+
+@page {
+    size: letter portrait; /* Tamaño carta, en orientación vertical */
+    margin: 0;
+}
+
+/* --- ESTILOS SIMPLIFICADOS PARA LA IMPRESIÓN --- */
+@media print {
+    .acciones-container {
+        display: none;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+    }
+}
     </style>
 </head>
 <body>
@@ -215,6 +233,44 @@ if (!$recibo) {
         </table>
     </div>
 </div>
+<div class="acciones-container">
+    <button class="btn-accion" onclick="imprimirRecibo()">Imprimir</button>
+    <button class="btn-accion" onclick="guardarComoPDF()">Guardar como PDF</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script>
+    // Función para imprimir solo el recibo
+    function imprimirRecibo() {
+        window.print();
+    }
+
+    // Función para guardar el recibo como PDF
+    function guardarComoPDF() {
+        // Oculta los botones para que no salgan en la captura
+        document.querySelector('.acciones-container').style.display = 'none';
+
+        const { jsPDF } = window.jspdf;
+        const reciboElemento = document.querySelector('.recibo-container');
+
+        html2canvas(reciboElemento, { scale: 2 }).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF({
+                orientation: 'landscape', // horizontal
+                unit: 'pt',
+                format: [canvas.width, canvas.height]
+            });
+            
+            pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+            pdf.save(`recibo-<?= htmlspecialchars($recibo['id']) ?>.pdf`);
+            
+            // Vuelve a mostrar los botones después de generar el PDF
+            document.querySelector('.acciones-container').style.display = 'block';
+        });
+    }
+</script>
 
 </body>
 </html>

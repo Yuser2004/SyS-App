@@ -25,7 +25,7 @@
         .menu-lateral {
             width: 250px;
             min-width: 220px;
-            background-color: #080b40;
+            background-color: #01458a;
             border-right: 1px solid #ccc;
             padding: 10px;
             overflow-y: none;
@@ -49,12 +49,9 @@
     </head>
 
     <body>
-        <!-- HEADER -->
         <header class="hero-header" id="mainHeader">
             <div class="overlay">
-                <h2 class="hero-title">Seguros y Servicios</h2>
-                <h3 class="hero-subtitle">Rapidéz y Responsabilidad</h3>
-                <br>
+                <img src="header.jpeg" alt="Logo de Seguros y Servicios" class="hero-image">
             </div>
         </header>
 
@@ -105,90 +102,52 @@
 
         <!-- SCRIPT PARA CARGA DINÁMICA -->
         <script>
-            function cargarContenido(ruta) {
-                fetch(ruta)
-                    .then(res => res.text())
-                    .then(html => {
-                        const contenedor = document.getElementById('contenido');
-                        contenedor.innerHTML = html;
-                        inicializarReporteFinanciero();
-                    })
-                    .catch(error => console.error('Error al cargar contenido:', error));
-            }
-        </script>
-        <script>
-            function inicializarReporteFinanciero() {
-                // Busca los elementos del reporte en la página
-                const fechaDesdeInput = document.getElementById('fecha_desde');
-                const fechaHastaInput = document.getElementById('fecha_hasta');
+        // En tu archivo index.php, esta es la única función que debes reemplazar.
 
-                // Si los elementos no existen (porque no estamos en la vista de reporte), no hace nada.
-                if (!fechaDesdeInput || !fechaHastaInput) {
-                    return;
-                }
+        function cargarContenido(ruta) {
+            // 1. LIMPIA los scripts de la vista anterior.
+            // Busca todos los scripts que hemos añadido dinámicamente y los elimina.
+            document.querySelectorAll('script[data-vista-dinamica]').forEach(script => {
+                script.remove();
+            });
 
-                const formatoMoneda = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
-
-                async function actualizarReporte() {
-                    // Referencias a los elementos que se van a actualizar
-                    const rangoFechasTitulo = document.getElementById('rango-fechas-titulo');
-                    const resumenIngresos = document.getElementById('resumen-ingresos');
-                    const resumenEgresos = document.getElementById('resumen-egresos');
-                    const resumenGastos = document.getElementById('resumen-gastos');
-                    const resumenUtilidad = document.getElementById('resumen-utilidad');
-                    const porcentajeEgresos = document.getElementById('porcentaje-egresos');
-                    const porcentajeGastos = document.getElementById('porcentaje-gastos');
-                    const porcentajeUtilidad = document.getElementById('porcentaje-utilidad');
-                    const cuerpoTablaDetalle = document.getElementById('cuerpo-tabla-detalle');
-
-                    const fechaDesde = fechaDesdeInput.value;
-                    const fechaHasta = fechaHastaInput.value;
-
-                    const response = await fetch(`finanzas/views/api_reporte.php?fecha_desde=${fechaDesde}&fecha_hasta=${fechaHasta}`);
-                    const data = await response.json();
-
-                    // Lógica para actualizar el HTML (sin cambios)
-                    const ingresos = data.resumen.total_ingresos;
-                    resumenIngresos.textContent = formatoMoneda.format(ingresos);
-                    resumenEgresos.textContent = formatoMoneda.format(data.resumen.total_egresos);
-                    resumenGastos.textContent = formatoMoneda.format(data.resumen.total_gastos);
-                    resumenUtilidad.textContent = formatoMoneda.format(data.resumen.utilidad_final);
-                    
-                    if (ingresos > 0) {
-                        porcentajeEgresos.textContent = `(${(data.resumen.total_egresos / ingresos * 100).toFixed(1)}% del Ingreso)`;
-                        porcentajeGastos.textContent = `(${(data.resumen.total_gastos / ingresos * 100).toFixed(1)}% del Ingreso)`;
-                        porcentajeUtilidad.textContent = `(${(data.resumen.utilidad_final / ingresos * 100).toFixed(1)}% del Ingreso)`;
-                    } else {
-                        porcentajeEgresos.textContent = '(0% del Ingreso)';
-                        porcentajeGastos.textContent = '(0% del Ingreso)';
-                        porcentajeUtilidad.textContent = '(0% del Ingreso)';
+            fetch(ruta)
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error(`Error HTTP! estado: ${res.status}`);
                     }
+                    return res.text();
+                })
+                .then(html => {
+                    const contenedor = document.getElementById('contenido');
+                    contenedor.innerHTML = html;
 
-                    const fechaDesdeFormato = new Date(fechaDesde + 'T00:00:00').toLocaleDateString('es-CO');
-                    const fechaHastaFormato = new Date(fechaHasta + 'T00:00:00').toLocaleDateString('es-CO');
-                    rangoFechasTitulo.textContent = `${fechaDesdeFormato} - ${fechaHastaFormato}`;
+                    // 2. AÑADE y ejecuta los scripts de la nueva vista.
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = html;
                     
-                    cuerpoTablaDetalle.innerHTML = '';
-                    if (data.detalle.length > 0) {
-                        data.detalle.forEach(fila => {
-                            const gananciaDiaria = fila.ingresos_diarios - fila.egresos_diarios;
-                            const fechaFormato = new Date(fila.fecha + 'T00:00:00').toLocaleDateString('es-CO');
-                            cuerpoTablaDetalle.innerHTML += `<tr><td>${fechaFormato}</td><td class="monto-ingreso">${formatoMoneda.format(fila.ingresos_diarios)}</td><td class="monto-egreso">${formatoMoneda.format(fila.egresos_diarios)}</td><td class="monto-neto">${formatoMoneda.format(gananciaDiaria)}</td></tr>`;
-                        });
-                    } else {
-                        cuerpoTablaDetalle.innerHTML = '<tr><td colspan="4" style="text-align: center;">No hay transacciones en el período seleccionado.</td></tr>';
-                    }
-                }
+                    tempDiv.querySelectorAll('script').forEach(scriptViejo => {
+                        const nuevoScript = document.createElement('script');
+                        
+                        // Le ponemos una 'etiqueta' para poder encontrarlo y borrarlo después.
+                        nuevoScript.setAttribute('data-vista-dinamica', 'true');
+                        
+                        // Copiamos el contenido del script.
+                        nuevoScript.textContent = scriptViejo.textContent;
+                        
+                        // Lo añadimos al final del body para que se ejecute.
+                        document.body.appendChild(nuevoScript);
+                    });
+                })
+                .catch(error => console.error('Error al cargar contenido:', error));
+        }
 
-                // Añadimos los escuchadores de eventos
-                fechaDesdeInput.addEventListener('change', actualizarReporte);
-                fechaHastaInput.addEventListener('change', actualizarReporte);
-
-                // Llamamos a la función una vez para cargar los datos iniciales
-                actualizarReporte();
-            }
+        // Carga inicial al abrir la aplicación por primera vez
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarContenido('recibos/views/lista.php'); // O la vista que prefieras por defecto
+        });
         </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     </body>
     </html>

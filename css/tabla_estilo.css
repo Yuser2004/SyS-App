@@ -21,7 +21,7 @@
     padding: 1rem;
     border: 1px solid var(--border);
     border-radius: 6px;
-    background: #7c7c7c2d;
+    background: #ffffffc4;
     box-sizing: border-box;
   }
   .members table {
@@ -32,13 +32,6 @@
       width: 100%;
       box-sizing: border-box;
       color: #040404; /* Color del texto (negro) */
-      
-      /* Contorno blanco de 1px */
-      text-shadow: 
-          -1px -1px 0 #ffffff,  
-          1px -1px 0 #ffffff,
-          -1px  1px 0 #ffffff,
-          1px  1px 0 #ffffff;
   }
   .members td {
     color: #040404; /* texto blanco */
@@ -228,16 +221,17 @@
     box-sizing: border-box;
   }
 
-  body {
-    background: radial-gradient(circle at center, #6868b4 0%, #0d1048 40%, #080b40 80%);
-    display: block !important;
-    flex-direction: unset !important;
-    min-height: 100vh;
-    font-family: 'SF Pro Text', 'SF Pro Icons', 'AOS Icons', 'Helvetica Neue',
-      Helvetica, Arial, sans-serif, system-ui;
-  }
-
-
+body {
+  background-image: url('/SyS-app/fondobody.jpg');  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat; 
+  background-attachment: fixed; /* <-- ESTA ES LA LÍNEA CLAVE */
+  display: block !important;
+  flex-direction: unset !important;
+  min-height: 100vh;
+  font-family: 'SF Pro Text', 'SF Pro Icons', 'AOS Icons', 'Helvetica Neue',
+    Helvetica, Arial, sans-serif, system-ui;
+}
   body::before {
     --size: 45px;
     --line: color-mix(in hsl, canvasText, transparent 80%);
@@ -326,7 +320,6 @@ h1 {
   box-shadow: 1px 1px 2px rgba(255, 255, 255, 0.2);
   color: #ffffff;
   text-decoration: none;
-  text-shadow: -1px -1px 0 #136a65;
   -webkit-transition: all 250ms linear;
           transition: all 250ms linear;
 }
@@ -337,4 +330,37 @@ h1 {
   color: #000;
   margin-top: 0;           /* Por si había espacio extra */
   padding: 10px 0;         /* Espacio vertical */
+}
+/* Estilo para el contenedor de los filtros */
+.filtros {
+    display: flex;
+    justify-content: center; /* Centra los filtros horizontalmente */
+    align-items: center;     /* Alinea verticalmente los items */
+    gap: 15px;               /* Espacio entre cada filtro */
+    margin-bottom: 20px;
+    flex-wrap: wrap;         /* Permite que los filtros pasen a la siguiente línea en pantallas pequeñas */
+}
+
+/* Estilo común para todos los filtros */
+.filtro-item {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #ffffff;
+    color: #333;
+    font-size: 14px;
+    outline: none; /* Quita el borde de foco por defecto */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Efecto al pasar el mouse o seleccionar un filtro */
+.filtro-item:focus,
+.filtro-item:hover {
+    border-color: #007bff; /* Color azul, puedes cambiarlo */
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* Estilo específico para el texto del placeholder en el buscador */
+#buscador::placeholder {
+    color: #999;
 }

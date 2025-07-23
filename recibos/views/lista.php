@@ -31,25 +31,24 @@ $recibos = $conn->query("
     <h2 class="titulo_lista">LISTA DE RECIBOS</h2>
 
     <div class="filtros">
-
         <label>Estado:
-        <select id="filtroEstado">
-            <option value="">Todos</option>
-            <option value="completado">Completado</option>
-            <option value="pendiente">Pendiente</option>
-            <option value="cancelado">Cancelado</option> 
-        </select>
+            <select id="filtroEstado" class="filtro-item">
+                <option value="">Todos</option>
+                <option value="completado">Completado</option>
+                <option value="pendiente">Pendiente</option>
+                <option value="cancelado">Cancelado</option> 
+            </select>
         </label>
 
         <label>Desde:
-            <input type="date" id="fechaDesde">
+            <input type="date" id="fechaDesde" class="filtro-item">
         </label>
 
         <label>Hasta:
-            <input type="date" id="fechaHasta">
+            <input type="date" id="fechaHasta" class="filtro-item">
         </label>
-        <input type="text" id="buscador" placeholder="Buscar por cliente, asesor o placa...">
-
+        
+        <input type="text" id="buscador" class="filtro-item" placeholder="Buscar por cliente, asesor o placa...">
     </div>
 
     <table role="grid">
@@ -105,7 +104,7 @@ $recibos = $conn->query("
                             <a href="#"
                                 class="btnfos btnfos-3"
                                 onclick="verFactura(<?= $recibo['id'] ?>)"
-                                title="Ver Factura del Recibo">
+                                title="Imprimir Recibo">
                                 <img src="verfactura.jpg" alt="Factura" style="width: 40px; height: 40px;">
                             </a>    
                             <a href="#"

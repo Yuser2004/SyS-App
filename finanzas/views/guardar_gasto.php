@@ -10,18 +10,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $monto = $_POST['monto'] ?? 0;
     $fecha = $_POST['fecha'] ?? '';
     $tipo = $_POST['tipo'] ?? '';
-
-
-/*      echo "--- Datos Recibidos --- \n";
-     print_r($_POST);
-     exit();  */
+    $metodo_pago = $_POST['metodo_pago'] ?? 'efectivo'; // <-- SE AÑADE LA NUEVA VARIABLE
 
     // 3. VALIDAR QUE LOS DATOS ESENCIALES NO ESTÉN VACÍOS
     if (!empty($descripcion) && $monto > 0 && !empty($fecha) && !empty($tipo)) {
         
         // 4. PREPARAR Y EJECUTAR LA CONSULTA SQL PARA INSERTAR
-        $stmt = $conn->prepare("INSERT INTO gastos (descripcion, monto, fecha, tipo) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("sdss", $descripcion, $monto, $fecha, $tipo);
+        // Se añade la columna 'metodo_pago' y un nuevo '?'
+        $stmt = $conn->prepare("INSERT INTO gastos (descripcion, monto, fecha, tipo, metodo_pago) VALUES (?, ?, ?, ?, ?)");
+        
+        // Se actualiza el bind_param para incluir la nueva variable (sdsss)
+        $stmt->bind_param("sdsss", $descripcion, $monto, $fecha, $tipo, $metodo_pago);
         
         // 5. VERIFICAR SI LA INSERCIÓN FUE EXITOSA Y RESPONDER
         if ($stmt->execute()) {
