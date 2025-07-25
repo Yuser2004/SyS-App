@@ -87,10 +87,14 @@
                         </span>
                     </li>
                     <li>
-                        <span onclick="cargarContenido('asesor/views/lista_asesor.php')">👤 Asesores</span>
+                        <span onclick="cargarContenido('asesor/views/lista_asesor.php')">
+                            <img src="asesorlogo.png" alt="Asesor" style="width: 60px; height: 40px; margin-right: 8px; vertical-align: middle;">Asesores
+                        </span>
                     </li>
                     <li>
-                        <span onclick="cargarContenido('finanzas/views/reporte.php')">Finanzas</span>
+                        <span onclick="cargarContenido('finanzas/views/reporte.php')">
+                            <img src="finanzalogo.png" alt="Finanzas" style="width: 60px; height: 40px; margin-right: 8px; vertical-align: middle;">Finanzas
+                        </span>
                     </li>
                     <li>
                         <span onclick="cargarContenido('finanzas/views/caja_diaria.php')">

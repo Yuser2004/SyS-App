@@ -71,15 +71,31 @@ if (!$recibo) {
             flex: 1;
             padding: 0 10px;
         }
+        /* Cambiamos flex-start por center para alinear todo en la columna */
         .header-col.col-izquierda {
             display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            gap: 10px;
+            flex-direction: column; /* Apila los elementos verticalmente */
+            align-items: center;   /* Centra los elementos horizontalmente */
+            justify-content: center; /* Centra los elementos verticalmente */
+            gap: 5px;              /* Espacio pequeño entre elementos */
         }
         .col-izquierda .logo {
-            max-width: 150px;
+            max-width: 100px; /* Tamaño ajustado para el logo circular */
             margin-bottom: 0;
+        }
+
+        .col-izquierda .letras-logo {
+            max-width: 250px; /* Ancho para la imagen de las letras */
+            height: auto;
+        }
+        /* Estilo para el nuevo lema */
+        .lema-header {
+            margin: 0;
+            color: red;
+            font-family: 'Georgia', serif; /* Una fuente cursiva legible */
+            font-style: italic;
+            font-size: 14px;
+            font-weight: bold;
         }
         .titulo-empresa {
             font-size: 24px;
@@ -157,7 +173,8 @@ if (!$recibo) {
     <div class="recibo-header">
         <div class="header-col col-izquierda">
             <img src="/SyS-app/SySlogo.png" alt="Logo S&S" class="logo">
-            <h1 class="titulo-empresa">Seguros & Servicios</h1>
+            <img src="/SyS-app/imgheader.png" alt="Seguros y Servicios Letras" class="letras-logo">
+            <p class="lema-header">Rapidez y Responsabilidad</p>
         </div>
         <div class="header-col col-centro">
             <p><strong>NIT. 30347736-1</strong></p>

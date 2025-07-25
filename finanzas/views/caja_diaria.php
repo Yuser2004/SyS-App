@@ -98,8 +98,9 @@ $id_sede_seleccionada = 1; // Sede por defecto
 (function() { // "Burbuja" para evitar conflictos
     const fechaInput = document.getElementById('fecha');
     const sedeInput = document.getElementById('id_sede');
+    const seccionCierre = document.getElementById('seccion-cierre'); // Referencia a la sección de cierre
 
-    if (!fechaInput || !sedeInput) return;
+    if (!fechaInput || !sedeInput || !seccionCierre) return;
 
     const formatoMoneda = (valor) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(valor);
 
@@ -107,66 +108,123 @@ $id_sede_seleccionada = 1; // Sede por defecto
         const fecha = fechaInput.value;
         const idSede = sedeInput.value;
 
-        const response = await fetch(`finanzas/views/api_caja_diaria.php?fecha=${fecha}&id_sede=${idSede}`);
-        const data = await response.json();
+        try {
+            const response = await fetch(`finanzas/views/api_caja_diaria.php?fecha=${fecha}&id_sede=${idSede}`);
+            if (!response.ok) throw new Error('No se pudo conectar con la API');
+            const data = await response.json();
 
-        // --- 1. ACTUALIZAR TÍTULO Y DATOS NUMÉRICOS ---
-        document.getElementById('titulo-fecha').textContent = new Date(fecha + 'T00:00:00').toLocaleDateString('es-CO');
-        document.getElementById('saldo-apertura').textContent = formatoMoneda(data.saldo_apertura);
-        document.getElementById('total-ingresos').textContent = formatoMoneda(data.ingresos.total);
-        document.getElementById('total-egresos').textContent = '-' + formatoMoneda(data.egresos.total);
-        document.getElementById('total-gastos').textContent = '-' + formatoMoneda(data.gastos.total);
-        document.getElementById('ingresos-efectivo').textContent = formatoMoneda(data.ingresos.desglose.efectivo);
-        document.getElementById('ingresos-transferencia').textContent = formatoMoneda(data.ingresos.desglose.transferencia);
-        document.getElementById('ingresos-tarjeta').textContent = formatoMoneda(data.ingresos.desglose.tarjeta);
-        document.getElementById('egresos-efectivo').textContent = '-' + formatoMoneda(data.egresos.desglose.efectivo);
-        document.getElementById('egresos-transferencia').textContent = '-' + formatoMoneda(data.egresos.desglose.transferencia);
-        document.getElementById('egresos-tarjeta').textContent = '-' + formatoMoneda(data.egresos.desglose.tarjeta);
-        document.getElementById('gastos-efectivo').textContent = '-' + formatoMoneda(data.gastos.desglose.efectivo);
-        document.getElementById('gastos-transferencia').textContent = '-' + formatoMoneda(data.gastos.desglose.transferencia);
-        document.getElementById('gastos-tarjeta').textContent = '-' + formatoMoneda(data.gastos.desglose.tarjeta);
+            // --- 1. ACTUALIZAR TÍTULO Y DATOS NUMÉRICOS (sin cambios) ---
+            document.getElementById('titulo-fecha').textContent = new Date(fecha + 'T00:00:00').toLocaleDateString('es-CO');
+            document.getElementById('saldo-apertura').textContent = formatoMoneda(data.saldo_apertura);
+            document.getElementById('total-ingresos').textContent = formatoMoneda(data.ingresos.total);
+            document.getElementById('total-egresos').textContent = '-' + formatoMoneda(data.egresos.total);
+            document.getElementById('total-gastos').textContent = '-' + formatoMoneda(data.gastos.total);
+            document.getElementById('ingresos-efectivo').textContent = formatoMoneda(data.ingresos.desglose.efectivo);
+            document.getElementById('ingresos-transferencia').textContent = formatoMoneda(data.ingresos.desglose.transferencia);
+            document.getElementById('ingresos-tarjeta').textContent = formatoMoneda(data.ingresos.desglose.tarjeta);
+            document.getElementById('egresos-efectivo').textContent = '-' + formatoMoneda(data.egresos.desglose.efectivo);
+            document.getElementById('egresos-transferencia').textContent = '-' + formatoMoneda(data.egresos.desglose.transferencia);
+            document.getElementById('egresos-tarjeta').textContent = '-' + formatoMoneda(data.egresos.desglose.tarjeta);
+            document.getElementById('gastos-efectivo').textContent = '-' + formatoMoneda(data.gastos.desglose.efectivo);
+            document.getElementById('gastos-transferencia').textContent = '-' + formatoMoneda(data.gastos.desglose.transferencia);
+            document.getElementById('gastos-tarjeta').textContent = '-' + formatoMoneda(data.gastos.desglose.tarjeta);
 
-        const balanceDiaEl = document.getElementById('balance-dia');
-        balanceDiaEl.textContent = formatoMoneda(data.balance_dia);
-        balanceDiaEl.className = data.balance_dia >= 0 ? 'balance-positivo total resumen-linea' : 'balance-negativo total resumen-linea';
+            const balanceDiaEl = document.getElementById('balance-dia');
+            balanceDiaEl.textContent = formatoMoneda(data.balance_dia);
+            balanceDiaEl.className = data.balance_dia >= 0 ? 'balance-positivo total resumen-linea' : 'balance-negativo total resumen-linea';
 
-        const saldoFinalEl = document.getElementById('saldo-final');
-        saldoFinalEl.textContent = formatoMoneda(data.saldo_final_esperado);
-        saldoFinalEl.className = data.saldo_final_esperado >= 0 ? 'balance-positivo total resumen-linea' : 'balance-negativo total resumen-linea';
+            const saldoFinalEl = document.getElementById('saldo-final');
+            saldoFinalEl.textContent = formatoMoneda(data.saldo_final_esperado);
+            saldoFinalEl.className = data.saldo_final_esperado >= 0 ? 'balance-positivo total resumen-linea' : 'balance-negativo total resumen-linea';
 
-        // --- 2. ACTUALIZAR SECCIÓN DE CIERRE (Lógica corregida, no duplicada) ---
-        const seccionCierre = document.getElementById('seccion-cierre');
-        if (data.caja_cerrada) {
-            seccionCierre.innerHTML = `<div class="caja-cerrada-msg">La caja para esta fecha y sede ya fue cerrada.</div>`;
-        } else if (data.se_puede_cerrar) {
-            seccionCierre.innerHTML = `
-                <h3 style="text-align:center;">Realizar Cierre de Caja</h3>
-                <p style="text-align:center; font-size: 14px;">Al cerrar la caja, se guardará un registro permanente.</p>
-                <form class="cierre-form" method="POST" action="finanzas/views/guardar_cierre.php">
-                    <input type="hidden" name="id_sede" value="${idSede}">
-                    <input type="hidden" name="fecha_cierre" value="${fecha}">
-                    <input type="hidden" name="saldo_apertura" value="${data.saldo_apertura}">
-                    <input type="hidden" name="total_ingresos" value="${data.ingresos.total}">
-                    <input type="hidden" name="total_egresos" value="${data.egresos.total}">
-                    <input type="hidden" name="total_gastos" value="${data.gastos.total}">
-                    <input type="hidden" name="balance_dia" value="${data.balance_dia}">
-                    <input type="hidden" name="saldo_final" value="${data.saldo_final_esperado}">
-                    <label for="conteo_efectivo"><b>Conteo Físico de Efectivo al Cierre:</b></label>
-                    <input type="number" step="0.01" name="conteo_efectivo" id="conteo_efectivo" required>
-                    <label for="notas"><b>Notas Adicionales:</b></label>
-                    <textarea name="notas" id="notas" rows="3"></textarea>
-                    <button type="submit">CERRAR CAJA DEL DÍA</button>
-                </form>
-            `;
-        } else {
-            seccionCierre.innerHTML = `<div class="caja-cerrada-msg" style="background-color: #f8d7da; color: #721c24; border-color: #f5c6cb;">${data.mensaje_cierre_bloqueado}</div>`;
+            // --- 2. ACTUALIZAR SECCIÓN DE CIERRE (sin cambios en la lógica de mostrar) ---
+            if (data.caja_cerrada) {
+                seccionCierre.innerHTML = `<div class="caja-cerrada-msg">La caja para esta fecha y sede ya fue cerrada.</div>`;
+            } else if (data.se_puede_cerrar) {
+                seccionCierre.innerHTML = `
+                    <h3 style="text-align:center;">Realizar Cierre de Caja</h3>
+                    <p style="text-align:center; font-size: 14px;">Al cerrar la caja, se guardará un registro permanente.</p>
+                    <form class="cierre-form" method="POST" action="finanzas/views/guardar_cierre.php">
+                        <input type="hidden" name="id_sede" value="${idSede}">
+                        <input type="hidden" name="fecha_cierre" value="${fecha}">
+                        <input type="hidden" name="saldo_apertura" value="${data.saldo_apertura}">
+                        <input type="hidden" name="total_ingresos" value="${data.ingresos.total}">
+                        <input type="hidden" name="total_egresos" value="${data.egresos.total}">
+                        <input type="hidden" name="total_gastos" value="${data.gastos.total}">
+                        <input type="hidden" name="balance_dia" value="${data.balance_dia}">
+                        <input type="hidden" name="saldo_final" value="${data.saldo_final_esperado}">
+                        <input type="hidden" name="ingresos_efectivo" value="${data.ingresos.desglose.efectivo}">
+                        <input type="hidden" name="egresos_efectivo" value="${data.egresos.desglose.efectivo}">
+                        <input type="hidden" name="gastos_efectivo" value="${data.gastos.desglose.efectivo}">
+                        
+                        <label for="conteo_efectivo"><b>Conteo Físico de Efectivo al Cierre:</b></label>
+                        <input type="number" step="0.01" name="conteo_efectivo" id="conteo_efectivo" required>
+                        <label for="notas"><b>Notas Adicionales:</b></label>
+                        <textarea name="notas" id="notas" rows="3"></textarea>
+                        <button type="submit">CERRAR CAJA DEL DÍA</button>
+                    </form>
+                `;
+            } else {
+                seccionCierre.innerHTML = `<div class="caja-cerrada-msg" style="background-color: #f8d7da; color: #721c24; border-color: #f5c6cb;">${data.mensaje_cierre_bloqueado}</div>`;
+            }
+        } catch (error) {
+            console.error("Error al actualizar la caja diaria:", error);
+            seccionCierre.innerHTML = `<div class="caja-cerrada-msg" style="background-color: #f8d7da; color: #721c24;">Error de conexión. No se pudieron cargar los datos.</div>`;
         }
     }
+    
+    // --- ¡NUEVO! MANEJADOR DE EVENTOS PARA EL FORMULARIO ---
+    seccionCierre.addEventListener('submit', async function(event) {
+        // Nos aseguramos de que el evento viene del formulario que queremos
+        if (event.target.matches('.cierre-form')) {
+            // 1. Prevenimos el envío tradicional que recarga la página
+            event.preventDefault(); 
+            
+            const form = event.target;
+            const submitButton = form.querySelector('button[type="submit"]');
+            
+            // Deshabilitamos el botón para evitar doble clic
+            submitButton.disabled = true;
+            submitButton.textContent = 'Guardando...';
 
+            try {
+                // 2. Creamos un objeto FormData para recopilar todos los campos del formulario
+                const formData = new FormData(form);
+
+                // 3. Enviamos los datos usando fetch al action del formulario
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const resultText = await response.text();
+
+                // 4. Verificamos la respuesta del servidor (guardar_cierre.php)
+                if (resultText.trim() === 'ok') {
+                    alert('¡Caja cerrada con éxito!');
+                    // 5. ¡Éxito! Recargamos los datos de la vista para que muestre el mensaje "Caja ya cerrada"
+                    actualizarCajaDiaria(); 
+                } else {
+                    // Si hubo un error en PHP, lo mostramos
+                    alert('Error al guardar el cierre:\n' + resultText);
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'CERRAR CAJA DEL DÍA';
+                }
+
+            } catch (error) {
+                console.error('Error de red al intentar cerrar la caja:', error);
+                alert('Hubo un error de conexión. Inténtalo de nuevo.');
+                submitButton.disabled = false;
+                submitButton.textContent = 'CERRAR CAJA DEL DÍA';
+            }
+        }
+    });
+
+    // --- EVENT LISTENERS Y CARGA INICIAL (sin cambios) ---
     fechaInput.addEventListener('change', actualizarCajaDiaria);
     sedeInput.addEventListener('change', actualizarCajaDiaria);
 
-    actualizarCajaDiaria();
+    actualizarCajaDiaria(); // Carga inicial
 })();
 </script>
 

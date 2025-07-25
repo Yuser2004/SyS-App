@@ -11,8 +11,6 @@ if ($resultado->num_rows === 0) {
 
 $cliente = $resultado->fetch_assoc();
 ?>
-
-<!-- Asegúrate de que esta ruta funcione desde index.php -->
 <link rel="stylesheet" href="cliente/public/css/estilos_form.css">
 
 <div class="login-form">

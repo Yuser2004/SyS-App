@@ -15,7 +15,26 @@ ngrok http 80
 SyS-app/
 
 SyS-app/
-           
+├── finanzas/
+│   ├── models/
+│   │   └── conexion.php
+│   └── views/
+│       ├── reporte.php           # El reporte financiero general
+│       ├── gestion_gastos.php      # La herramienta para añadir sueldos, arriendos, etc.
+│       │
+│       ├── api_reporte.php
+│       ├── guardar_gasto.php
+│       └── eliminar_gasto.php
+│
+├── caja/                     
+│   ├── models/
+│   │   └── conexion.php
+│   └── views/
+│       ├── caja_diaria.php       # La interfaz para el cierre de caja
+│       │
+│       ├── api_caja_diaria.php
+│       └── guardar_cierre.php
+│        
 ├── asesor/
 │   ├── models/
 │   │   └── conexion.php
