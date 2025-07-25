@@ -16,7 +16,7 @@ $stmt_ingresos->execute();
 $total_ingresos = $stmt_ingresos->get_result()->fetch_assoc()['total'] ?? 0;
 $stmt_ingresos->close();
 
-// Egresos: Solo de recibos completados
+// Egresos: AHORA SOLO DE RECIBOS COMPLETADOS
 $sql_total_egresos = "SELECT SUM(e.monto) AS total FROM egresos e JOIN recibos r ON e.recibo_id = r.id WHERE r.estado = 'completado' AND e.fecha BETWEEN ? AND ?";
 $stmt_egresos = $conn->prepare($sql_total_egresos);
 $stmt_egresos->bind_param("ss", $fecha_desde, $fecha_hasta);
@@ -46,14 +46,14 @@ foreach ($metodos_pago as $metodo) {
     $stmt->execute();
     $ingresos_metodo = $stmt->get_result()->fetch_assoc()['total'] ?? 0;
     
-    // Egresos por método (solo de recibos completados)
+    // Egresos por método (AHORA SOLO DE RECIBOS COMPLETADOS)
     $sql_egr_m = "SELECT SUM(e.monto) AS total FROM egresos e JOIN recibos r ON e.recibo_id = r.id WHERE r.estado = 'completado' AND e.forma_pago = ? AND e.fecha BETWEEN ? AND ?";
     $stmt = $conn->prepare($sql_egr_m);
     $stmt->bind_param("sss", $metodo, $fecha_desde, $fecha_hasta);
     $stmt->execute();
     $egresos_metodo = $stmt->get_result()->fetch_assoc()['total'] ?? 0;
 
-    // Gastos por método
+    // Gastos por método (sin cambios)
     $sql_gas_m = "SELECT SUM(monto) AS total FROM gastos WHERE metodo_pago = ? AND fecha BETWEEN ? AND ?";
     $stmt = $conn->prepare($sql_gas_m);
     $stmt->bind_param("sss", $metodo, $fecha_desde, $fecha_hasta);
