@@ -10,7 +10,7 @@ $asesores = $conn->query("
 <link rel="stylesheet" href="css/tabla_estilo.css">
 
 <div class="members">
-    <a href="#" class="btnfos btnfos-3" onclick="cargarContenido('asesor/views/crear_asesor.php'); return false;">Registrar Asesor</a>
+    <a href="#" title="Registrar Recibo" class="btnfos btnfos-3" onclick="cargarContenido('asesor/views/crear_asesor.php'); return false;"><img src="cliente.png" alt="Añadir Asesor" style="width: 35px; height: 35px;"></a>
 
     <h2 class="titulo_lista">LISTA DE ASESORES</h2>
 
@@ -33,8 +33,12 @@ $asesores = $conn->query("
                         <td><input type="text" value="<?= htmlspecialchars($asesor['nombre']) ?>" readonly></td>
                         <td><input type="text" value="<?= htmlspecialchars($asesor['nombre_sede']) ?>" readonly></td>
                         <td class="acciones">
-                            <a href="#" class="btnfos btnfos-3" onclick="cargarContenido('asesor/views/editar_asesor.php?id=<?= $asesor['id_asesor'] ?>')">Editar</a>
-                            <a href="#" class="btnfos btnfos-3" onclick="eliminarAsesor(<?= $asesor['id_asesor'] ?>)">Eliminar</a>
+                            <a href="#" title="Editar Asesor" class="btnfos btnfos-3" onclick="cargarContenido('asesor/views/editar_asesor.php?id=<?= $asesor['id_asesor'] ?>')">
+                                <img src="editar.png" alt="Editar" style="width: 40px; height: 40px;">
+                            </a>
+                            <a href="#" title="Eliminar Asesor" class="btnfos btnfos-3" onclick="eliminarAsesor(<?= $asesor['id_asesor'] ?>)">
+                                <img src="eliminar.png" alt="Eliminar" style="width: 40px; height: 40px;">
+                            </a>
                         </td>
                     </tr>
                 <?php endwhile; ?>

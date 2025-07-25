@@ -13,7 +13,7 @@ if ($recibo_id > 0) {
     // 1. Consulta para obtener la información principal del recibo y cliente
     $stmt_recibo = $conn->prepare("
         SELECT 
-            r.id, r.concepto_servicio, r.valor_servicio, r.fecha_tramite, r.estado, r.metodo_pago, r.descripcion_servicio,
+            r.id, r.concepto_servicio, r.valor_servicio, r.fecha_tramite, r.estado, r.metodo_pago, r.descripcion_servicio, r.detalle_pago,
             c.nombre_completo, c.documento, c.telefono, c.ciudad, c.direccion, c.observaciones,
             v.placa,
             a.nombre AS asesor_nombre
@@ -169,6 +169,9 @@ if (!$recibo) {
             <p><strong>Concepto:</strong> <?= htmlspecialchars($recibo['concepto_servicio']) ?></p>
             <p><strong>Valor del Servicio:</strong> <strong style="color: #28a745;">$<?= number_format($recibo['valor_servicio'], 0, ',', '.') ?></strong></p>
             <p><strong>Método de Pago:</strong> <?= htmlspecialchars(ucfirst($recibo['metodo_pago'])) ?></p>
+            <?php if ($recibo['metodo_pago'] == 'transferencia' && !empty($recibo['detalle_pago'])): ?>
+                <p><strong>Detalle de Cuenta:</strong> <?= htmlspecialchars($recibo['detalle_pago']) ?></p>
+            <?php endif; ?>
             <p><strong>Estado:</strong> <?= htmlspecialchars(ucfirst($recibo['estado'])) ?></p>
         </div>
 

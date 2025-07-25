@@ -15,10 +15,18 @@ if ($recibo_id > 0) {
     // Consulta para obtener todos los datos necesarios
     $stmt = $conn->prepare("
         SELECT 
-            r.id, r.fecha_tramite, r.valor_servicio, r.concepto_servicio, r.metodo_pago,
-            c.nombre_completo AS cliente_nombre, c.documento AS cliente_documento, c.telefono AS cliente_celular, c.direccion AS cliente_direccion, c.ciudad AS cliente_ciudad
+            r.id, r.fecha_tramite, r.valor_servicio, r.concepto_servicio, r.metodo_pago, r.detalle_pago,
+            c.nombre_completo AS cliente_nombre, 
+            c.documento AS cliente_documento, 
+            c.telefono AS cliente_celular, 
+            c.direccion AS cliente_direccion, 
+            c.ciudad AS cliente_ciudad,
+            a.nombre AS asesor_nombre,      -- Nombre del Asesor
+            s.direccion AS sede_direccion  -- Dirección de la Sede
         FROM recibos r
         LEFT JOIN clientes c ON r.id_cliente = c.id_cliente
+        LEFT JOIN asesor a ON r.id_asesor = a.id_asesor -- Unimos con Asesor
+        LEFT JOIN sedes s ON a.id_sede = s.id           -- Unimos con Sedes
         WHERE r.id = ?
     ");
     $stmt->bind_param("i", $recibo_id);
@@ -153,8 +161,8 @@ if (!$recibo) {
         </div>
         <div class="header-col col-centro">
             <p><strong>NIT. 30347736-1</strong></p>
-            <p>CELS. 314 7015664 | TEL. 839 0433</p>
-            <p>CALLE 10 No.5-04 NIVEL 2 LA DORADA, CALDAS</p>
+            <p>CELS. 314 7015664</p>
+            <p><?= htmlspecialchars($recibo['sede_direccion']) ?></p>
             <p>serviciosysegurosla10@hotmail.com</p>
             <hr style="border-color: #eee; margin: 5px 0;">
             <p>SOAT DE CARROS Y MOTOS</p>
@@ -213,11 +221,19 @@ if (!$recibo) {
                 </td>
             </tr>
             <tr>
+                <td colspan="4">
+                    <span class="label">Nombre de Cuenta:</span>
+                    <?php if ($recibo['metodo_pago'] == 'transferencia' && !empty($recibo['detalle_pago'])): ?>
+                        <span class="data"><?= htmlspecialchars($recibo['detalle_pago']) ?></span>
+                    <?php endif; ?>
+                </td>
+            </tr>
+            <tr>
                 <td colspan="4" class="forma-pago">
                     <span class="label">Forma de Pago:</span>
                     <div>
                         <input type="checkbox" <?= ($recibo['metodo_pago'] == 'efectivo') ? 'checked' : '' ?> disabled> EFECTIVO
-                        <input type="checkbox" <?= ($recibo['metodo_pago'] == 'transferencia') ? 'checked' : '' ?> disabled> BANCO
+                        <input type="checkbox" <?= ($recibo['metodo_pago'] == 'transferencia') ? 'checked' : '' ?> disabled> TRANSACCION
                         <input type="checkbox" <?= ($recibo['metodo_pago'] == 'tarjeta') ? 'checked' : '' ?> disabled> T. CRÉDITO
                     </div>
                 </td>

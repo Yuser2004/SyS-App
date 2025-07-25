@@ -106,7 +106,16 @@
                 </select>
             </div>
 
-
+            <div class="form-input-material" id="detalle_pago_container" style="display: none;">
+                <label for="detalle_pago">Cuenta de Destino</label>
+                <select name="detalle_pago" id="detalle_pago">
+                    <option value="" disabled selected hidden>Selecciona una cuenta</option>
+                    <option class="opt-daviplata" value="Daviplata">Daviplata</option>
+                    <option class="opt-davivienda" value="Ahorro a la mano">Davivienda</option>
+                    <option class="opt-nequi" value="Nequi">Nequi</option>
+                    <option class="opt-bancolombia" value="Bancolombia">Bancolombia</option>
+                </select>
+            </div>
             <!-- Descripción -->
             <div class="form-input-material">
                 <textarea name="descripcion_servicio" id="descripcion_servicio" rows="4" placeholder=" "></textarea>
@@ -285,6 +294,38 @@
             e.target.value = '';
         }
     });
+    // --- LÓGICA PARA MOSTRAR/OCULTAR EL CAMPO DE DETALLE DE PAGO ---
+    const metodoPagoSelect = document.getElementById('metodo_pago');
+    const detallePagoContainer = document.getElementById('detalle_pago_container');
+    
+    if (metodoPagoSelect) {
+        metodoPagoSelect.addEventListener('change', function() {
+            if (this.value === 'transferencia') {
+                detallePagoContainer.style.display = 'block';
+                document.getElementById('detalle_pago').required = true;
+            } else {
+                detallePagoContainer.style.display = 'none';
+                document.getElementById('detalle_pago').required = false;
+                document.getElementById('detalle_pago').value = '';
+            }
+        });
+    }
     </script>   
+<style>
+    /* Daviplata (Rojo suave) */
+    .opt-daviplata { background-color: #ffebee; color: #e30a0aff; }
+    select#detalle_pago.opt-daviplata { background-color: #ffebee; color: #c62828; font-weight: bold; }
 
+    /* Davivienda (Rojo/Naranja suave) */
+    .opt-davivienda { background-color: #fff3e0; color: #ef6c00; }
+    select#detalle_pago.opt-davivienda { background-color: #fff3e0; color: #ef6c00; font-weight: bold; }
+
+    /* Nequi (Morado suave) */
+    .opt-nequi { background-color: #f3e5f5; color: #2a11cdff; }
+    select#detalle_pago.opt-nequi { background-color: #f3e5f5; color: #6a1b9a; font-weight: bold; }
+
+    /* Bancolombia (Amarillo/Negro suave) */
+    .opt-bancolombia { background-color: #fffde7; color: #f57f17; }
+    select#detalle_pago.opt-bancolombia { background-color: #fffde7; color: #f57f17; font-weight: bold; }
+</style>
     </div>

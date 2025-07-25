@@ -11,7 +11,9 @@ $sedes = $conn->query("
 
 <link rel="stylesheet" href="css/tabla_estilo.css">
 
-<a href="#" class="btnfos btnfos-3" onclick="cargarContenido('sedes/views/crear_sede.php'); return false;">Registrar Sede</a> 
+<a href="#" title="Añadir Sede" class="btnfos btnfos-3" onclick="cargarContenido('sedes/views/crear_sede.php'); return false;">
+    <img src="cliente.png" alt="Añadir Asesor" style="width: 35px; height: 35px;">
+</a> 
 <h2 class="titulo_lista">LISTA DE SEDES</h2>
 
 <table role="grid">
@@ -33,8 +35,12 @@ $sedes = $conn->query("
                     <td><input type="text" value="<?= htmlspecialchars($sede['direccion']) ?>" readonly></td>
                     <td><input type="text" value="<?= $sede['total_asesores'] ?>" readonly></td>   
                     <td class="acciones">
-                        <a href="#" class="btnfos btnfos-3" onclick="cargarContenido('sedes/views/editar_sede.php?id=<?= $sede['id'] ?>'); return false;">Editar</a>
-                        <a href="#" class="btnfos btnfos-3" onclick="eliminarSede(<?= $sede['id'] ?>); return false;">Eliminar</a>
+                        <a href="#" title="Editar Sede" class="btnfos btnfos-3" onclick="cargarContenido('sedes/views/editar_sede.php?id=<?= $sede['id'] ?>'); return false;">
+                            <img src="editar.png" alt="Editar" style="width: 40px; height: 40px;">
+                        </a>
+                        <a href="#" title="Eliminar Sede" class="btnfos btnfos-3" onclick="eliminarSede(<?= $sede['id'] ?>); return false;">
+                            <img src="eliminar.png" alt="Eliminar" style="width: 40px; height: 40px;">
+                        </a>
                     </td>
                 </tr>
             <?php endwhile; ?>
