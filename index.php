@@ -24,6 +24,7 @@
         }
         .menu-lateral {
             width: 250px;
+            min-height: 600px;
             min-width: 220px;
             background-color: #01458a;
             border-right: 1px solid #ccc;
@@ -90,6 +91,12 @@
                     </li>
                     <li>
                         <span onclick="cargarContenido('finanzas/views/reporte.php')">Finanzas</span>
+                    </li>
+                    <li>
+                        <span onclick="cargarContenido('finanzas/views/caja_diaria.php')">
+                            <img src="caja-diaria.png" alt="Caja Diaria" style="width: 40px; height: 40px; margin-right: 8px; vertical-align: middle;">
+                            Caja Diaria
+                        </span>
                     </li>
                 </ul>
             </nav>

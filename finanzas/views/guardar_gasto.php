@@ -11,16 +11,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fecha = $_POST['fecha'] ?? '';
     $tipo = $_POST['tipo'] ?? '';
     $metodo_pago = $_POST['metodo_pago'] ?? 'efectivo'; // <-- SE AÑADE LA NUEVA VARIABLE
+    $id_sede = intval($_POST['id_sede'] ?? 0); 
 
     // 3. VALIDAR QUE LOS DATOS ESENCIALES NO ESTÉN VACÍOS
-    if (!empty($descripcion) && $monto > 0 && !empty($fecha) && !empty($tipo)) {
+    if (!empty($descripcion) && $monto > 0 && !empty($fecha) && !empty($tipo) && $id_sede > 0) {
         
         // 4. PREPARAR Y EJECUTAR LA CONSULTA SQL PARA INSERTAR
         // Se añade la columna 'metodo_pago' y un nuevo '?'
-        $stmt = $conn->prepare("INSERT INTO gastos (descripcion, monto, fecha, tipo, metodo_pago) VALUES (?, ?, ?, ?, ?)");
+        $stmt = $conn->prepare("INSERT INTO gastos (id_sede, descripcion, monto, fecha, tipo, metodo_pago) VALUES (?, ?, ?, ?, ?, ?)");
         
         // Se actualiza el bind_param para incluir la nueva variable (sdsss)
-        $stmt->bind_param("sdsss", $descripcion, $monto, $fecha, $tipo, $metodo_pago);
+        $stmt->bind_param("isdsss", $id_sede, $descripcion, $monto, $fecha, $tipo, $metodo_pago); // <-- ACTUALIZAR BIND
         
         // 5. VERIFICAR SI LA INSERCIÓN FUE EXITOSA Y RESPONDER
         if ($stmt->execute()) {

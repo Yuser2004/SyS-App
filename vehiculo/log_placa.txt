@@ -17,3 +17,6 @@ Placa: POI098 | ID: 0
 Placa: QWE123 | ID: 0
 Placa: 567TYU | ID: 0
 Placa: ERT098 | ID: 0
+Placa: ASD246 | ID: 0
+Placa: UQD93C | ID: 0
+Placa: 567FGH | ID: 0

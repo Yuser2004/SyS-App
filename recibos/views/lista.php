@@ -85,43 +85,36 @@ $recibos = $conn->query("
                 <?php while ($recibo = $recibos->fetch_assoc()): ?>
                     <tr class="visible">
                         <td><?= $recibo['id'] ?></td>
-                        <td><input type="text" value="<?= date('d/m/Y', strtotime($recibo['fecha_tramite'])) ?>" readonly></td>
-                        <td><input type="text" value="<?= htmlspecialchars($recibo['cliente']) ?>" readonly></td>
-                        <td><input type="text" value="<?= htmlspecialchars($recibo['placa']) ?>" readonly></td>
-                        <td><input type="text" value="<?= htmlspecialchars($recibo['concepto']) ?>" readonly></td>
-                        <td><input type="text" value="<?= htmlspecialchars($recibo['asesor']) ?>" readonly></td>
-                        <td><input type="text" value="$<?= number_format($recibo['valor_servicio'], 0, ',', '.') ?>" readonly></td>
-                        <td><input type="text" value="<?= ucfirst($recibo['estado']) ?>" readonly></td>
-                        <td><input type="text" value="<?= ucfirst($recibo['metodo_pago']) ?>" readonly></td>
-                        <td><input type="text" value="<?= $recibo['total_egresos'] ?>" readonly></td>
+                        
+                        <td><input type="text" value="<?= !empty($recibo['fecha_tramite']) ? date('d/m/Y', strtotime($recibo['fecha_tramite'])) : 'N/A' ?>" readonly></td>
+                        
+                        <td><input type="text" value="<?= htmlspecialchars($recibo['cliente'] ?? 'Sin Cliente') ?>" readonly></td>
+                        <td><input type="text" value="<?= htmlspecialchars($recibo['placa'] ?? 'Sin Placa') ?>" readonly></td>
+                        <td><input type="text" value="<?= htmlspecialchars($recibo['concepto'] ?? '') ?>" readonly></td>
+                        <td><input type="text" value="<?= htmlspecialchars($recibo['asesor'] ?? 'Sin Asesor') ?>" readonly></td>
+                        <td><input type="text" value="$<?= number_format($recibo['valor_servicio'] ?? 0, 0, ',', '.') ?>" readonly></td>
+                        <td><input type="text" value="<?= ucfirst($recibo['estado'] ?? '') ?>" readonly></td>
+                        <td><input type="text" value="<?= ucfirst($recibo['metodo_pago'] ?? '') ?>" readonly></td>
+                        <td><input type="text" value="<?= $recibo['total_egresos'] ?? 0 ?>" readonly></td>
+                        
                         <td class="acciones">
-                            <a href="#"
-                            class="btnfos btnfos-3"
-                            onclick="cargarContenido('recibos/views/editar.php?id=<?= $recibo['id'] ?>')"
-                            title="Editar Recibo">
+                            <a href="#" class="btnfos btnfos-3" onclick="cargarContenido('recibos/views/editar.php?id=<?= $recibo['id'] ?>')" title="Editar Recibo">
                                 <img src="editar.png" alt="Editar" style="width: 40px; height: 40px;">
                             </a>
-                            <a href="#"
-                                class="btnfos btnfos-3"
-                                onclick="verFactura(<?= $recibo['id'] ?>)"
-                                title="Imprimir Recibo">
+                            <a href="#" class="btnfos btnfos-3" onclick="verFactura(<?= $recibo['id'] ?>)" title="Imprimir Recibo">
                                 <img src="verfactura.jpg" alt="Factura" style="width: 40px; height: 40px;">
-                            </a>    
-                            <a href="#"
-                            class="btnfos btnfos-3"
-                            onclick="verEgresos(<?= $recibo['id'] ?>)"
-                            title="Añadir Egreso">
+                            </a>
+                            <a href="#" class="btnfos btnfos-3" onclick="verEgresos(<?= $recibo['id'] ?>)" title="Añadir Egreso">
                                 <img src="finanzas.png" alt="Egresos" style="width: 40px; height: 40px;">
                             </a>
-                            <a href="#" class="btnfos btnfos-3" title="Ver Recibo" 
-                            onclick="cargarContenido('recibos/views/detalle_recibo.php?id=<?= $recibo['id'] ?>'); return false;">
+                            <a href="#" class="btnfos btnfos-3" title="Ver Recibo" onclick="cargarContenido('recibos/views/detalle_recibo.php?id=<?= $recibo['id'] ?>'); return false;">
                                 <img src="ver_recibo.jpeg" alt="Ver Detalle" style="width: 40px; height: 40px;">
-                            </a>    
+                            </a>
                         </td>
                     </tr>
                 <?php endwhile; ?>
             <?php else: ?>
-                <tr><td colspan="8">No hay recibos registrados.</td></tr>
+                <tr><td colspan="11">No hay recibos registrados.</td></tr>
             <?php endif; ?>
         </tbody>
     </table>
@@ -185,15 +178,14 @@ $recibos = $conn->query("
     var tablaRecibosBody = document.getElementById('tabla-recibos');
     var filas = tablaRecibosBody.getElementsByTagName('tr');
 
-    // --- Función MAESTRA que aplica TODOS los filtros ---
     function aplicarFiltros() {
-        // 1. Obtener los valores de todos los filtros
         const estadoSeleccionado = filtroEstado.value.toLowerCase().trim();
         const textoBusqueda = buscadorInput.value.toLowerCase().trim();
-        const fechaDesde = fechaDesdeInput.value ? new Date(fechaDesdeInput.value + 'T00:00:00') : null;
-        const fechaHasta = fechaHastaInput.value ? new Date(fechaHastaInput.value + 'T23:59:59') : null;
 
-        // 2. Recorrer las filas y aplicar la lógica
+        // 1. Obtenemos las fechas como texto en formato YYYY-MM-DD
+        const fechaDesdeTexto = fechaDesdeInput.value;
+        const fechaHastaTexto = fechaHastaInput.value;
+
         for (const fila of filas) {
             const celdaFecha = fila.cells[1];
             const celdaCliente = fila.cells[2];
@@ -202,32 +194,27 @@ $recibos = $conn->query("
             const celdaEstado = fila.cells[7];
 
             if (celdaCliente && celdaPlaca && celdaAsesor && celdaEstado && celdaFecha) {
-                // --- Lógica de decisión: una fila debe cumplir TODO para ser visible ---
-                
-                // Condición 1: Estado
                 const estadoFila = celdaEstado.querySelector('input').value.toLowerCase().trim();
                 const cumpleEstado = (estadoSeleccionado === "" || estadoFila === estadoSeleccionado);
-
-                // Condición 2: Fechas
-                const fechaFilaTexto = celdaFecha.querySelector('input').value;
-                const partesFecha = fechaFilaTexto.split('/');
-                const fechaFila = new Date(`${partesFecha[2]}-${partesFecha[1]}-${partesFecha[0]}`);
-                const cumpleFecha = (!fechaDesde || fechaFila >= fechaDesde) && (!fechaHasta || fechaFila <= fechaHasta);
                 
-                // Condición 3: Búsqueda de texto (en cliente, placa y asesor)
+                // 2. Convertimos la fecha de la fila a formato YYYY-MM-DD
+                const partesFecha = celdaFecha.querySelector('input').value.split('/');
+                const fechaFilaTexto = `${partesFecha[2]}-${partesFecha[1]}-${partesFecha[0]}`;
+                
+                // 3. Comparamos las fechas como texto simple
+                const cumpleFecha = (!fechaDesdeTexto || fechaFilaTexto >= fechaDesdeTexto) && (!fechaHastaTexto || fechaFilaTexto <= fechaHastaTexto);
+                
                 const textoFila = `${celdaCliente.querySelector('input').value} ${celdaPlaca.querySelector('input').value} ${celdaAsesor.querySelector('input').value}`.toLowerCase();
                 const cumpleBusqueda = textoFila.includes(textoBusqueda);
 
-                // --- Decisión Final ---
                 if (cumpleEstado && cumpleFecha && cumpleBusqueda) {
-                    fila.style.display = ""; // Mostrar
+                    fila.style.display = "";
                 } else {
-                    fila.style.display = "none"; // Ocultar
+                    fila.style.display = "none";
                 }
             }
         }
     }
-
     // --- Añadir los Event Listeners a TODOS los filtros ---
     filtroEstado.addEventListener('change', aplicarFiltros);
     fechaDesdeInput.addEventListener('change', aplicarFiltros);
