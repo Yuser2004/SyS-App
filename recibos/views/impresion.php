@@ -22,7 +22,8 @@ if ($recibo_id > 0) {
             c.direccion AS cliente_direccion, 
             c.ciudad AS cliente_ciudad,
             a.nombre AS asesor_nombre,      -- Nombre del Asesor
-            s.direccion AS sede_direccion  -- Dirección de la Sede
+            s.direccion AS sede_direccion,  -- Dirección de la Sede
+            s.celular AS sede_celular      -- << NUEVO: Celular de la Sede
         FROM recibos r
         LEFT JOIN clientes c ON r.id_cliente = c.id_cliente
         LEFT JOIN asesor a ON r.id_asesor = a.id_asesor -- Unimos con Asesor
@@ -178,7 +179,9 @@ if (!$recibo) {
         </div>
         <div class="header-col col-centro">
             <p><strong>NIT. 30347736-1</strong></p>
-            <p>CELS. 314 7015664</p>
+            <?php if (!empty($recibo['sede_celular'])): ?>
+                <p>CEL. <?= htmlspecialchars($recibo['sede_celular']) ?></p>
+            <?php endif; ?>
             <p><?= htmlspecialchars($recibo['sede_direccion']) ?></p>
             <p>serviciosysegurosla10@hotmail.com</p>
             <hr style="border-color: #eee; margin: 5px 0;">
@@ -229,6 +232,12 @@ if (!$recibo) {
                 <td colspan="4">
                     <span class="label">La Suma de:</span>
                     <span class="data"><?= NumeroALetras::convertir($recibo['valor_servicio']) ?> MCTE.</span>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="4">
+                    <span class="label">Nombre del asesor:</span>
+                    <span class="data"><?= htmlspecialchars($recibo['asesor_nombre']) ?></span>
                 </td>
             </tr>
             <tr>

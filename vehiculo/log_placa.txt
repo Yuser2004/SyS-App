@@ -20,3 +20,6 @@ Placa: ERT098 | ID: 0
 Placa: ASD246 | ID: 0
 Placa: UQD93C | ID: 0
 Placa: 567FGH | ID: 0
+Placa: 098WER | ID: 0
+Placa: 098LKJ | ID: 0
+Placa: 000PPP | ID: 0
