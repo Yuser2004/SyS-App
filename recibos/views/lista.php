@@ -1,17 +1,23 @@
 <?php
 include __DIR__ . '/../models/conexion.php';
-
 $recibos = $conn->query("
-    SELECT r.id, r.fecha_tramite, c.nombre_completo AS cliente, 
-           v.placa, a.nombre AS asesor, r.valor_servicio, 
-           r.estado, r.metodo_pago, r.concepto_servicio AS concepto,
-           COUNT(e.id) AS total_egresos
+    SELECT 
+        r.id, 
+        r.fecha_tramite, 
+        c.nombre_completo AS cliente, 
+        v.placa, 
+        a.nombre AS asesor, 
+        r.valor_servicio, 
+        r.estado, 
+        r.metodo_pago, 
+        r.concepto_servicio AS concepto,
+        -- LA CORRECCIÓN CLAVE: Usamos una subconsulta para sumar los egresos de forma segura
+        (SELECT SUM(e.monto) FROM egresos e WHERE e.recibo_id = r.id) AS valor_total_egresos
     FROM recibos r
     LEFT JOIN clientes c ON r.id_cliente = c.id_cliente
     LEFT JOIN vehiculo v ON r.id_vehiculo = v.id_vehiculo
     LEFT JOIN asesor a ON r.id_asesor = a.id_asesor
-    LEFT JOIN egresos e ON e.recibo_id = r.id
-    GROUP BY r.id
+    -- Ya no se necesita el JOIN a egresos ni el GROUP BY aquí
     ORDER BY r.id DESC
 ");
 
@@ -27,7 +33,12 @@ $recibos = $conn->query("
         title="Registrar Recibo">
         <img src="nuevo_recibo.png" alt="Registrar Recibo" style="width: 35px; height: 35px;">
     </a>
-
+    <a href="#"
+        class="btnfos btnfos-3"
+        onclick="exportarAExcel(); return false;"
+        title="Exportar a Excel">
+        <img src="excel.png" alt="Exportar a Excel" style="width: 35px; height: 35px;">
+    </a>
     <h2 class="titulo_lista">LISTA DE RECIBOS</h2>
 
     <div class="filtros">
@@ -95,7 +106,7 @@ $recibos = $conn->query("
                         <td><input type="text" value="$<?= number_format($recibo['valor_servicio'] ?? 0, 0, ',', '.') ?>" readonly></td>
                         <td><input type="text" value="<?= ucfirst($recibo['estado'] ?? '') ?>" readonly></td>
                         <td><input type="text" value="<?= ucfirst($recibo['metodo_pago'] ?? '') ?>" readonly></td>
-                        <td><input type="text" value="<?= $recibo['total_egresos'] ?? 0 ?>" readonly></td>
+                        <td><input type="text" value="$<?= number_format($recibo['valor_total_egresos'] ?? 0, 0, ',', '.') ?>" readonly></td>
                         
                         <td class="acciones">
                             <a href="#" class="btnfos btnfos-3" onclick="cargarContenido('recibos/views/editar.php?id=<?= $recibo['id'] ?>')" title="Editar Recibo">
@@ -220,5 +231,24 @@ $recibos = $conn->query("
     fechaDesdeInput.addEventListener('change', aplicarFiltros);
     fechaHastaInput.addEventListener('change', aplicarFiltros);
     buscadorInput.addEventListener('input', aplicarFiltros); // 'input' es mejor para búsqueda en vivo
+    function exportarAExcel() {
+        // Obtenemos los valores actuales de los filtros
+        const estado = document.getElementById('filtroEstado').value;
+        const fechaDesde = document.getElementById('fechaDesde').value;
+        const fechaHasta = document.getElementById('fechaHasta').value;
+        const busqueda = document.getElementById('buscador').value;
 
+        // Construimos la URL con los parámetros
+        const params = new URLSearchParams({
+            estado: estado,
+            fechaDesde: fechaDesde,
+            fechaHasta: fechaHasta,
+            busqueda: busqueda
+        });
+
+        const url = `recibos/exportar_excel.php?${params.toString()}`;
+
+        // Abrimos la URL en una nueva pestaña para iniciar la descarga
+        window.open(url, '_blank');
+    }
 </script>

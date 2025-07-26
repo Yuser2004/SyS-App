@@ -23,3 +23,7 @@ Placa: 567FGH | ID: 0
 Placa: 098WER | ID: 0
 Placa: 098LKJ | ID: 0
 Placa: 000PPP | ID: 0
+Placa: ZXC123 | ID: 0
+Placa: 123ZXC | ID: 0
+Placa: ZXC123 | ID: 0
+Placa: ZXC123 | ID: 86

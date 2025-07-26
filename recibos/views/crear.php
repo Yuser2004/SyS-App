@@ -7,6 +7,7 @@
     // Recibir los IDs desde la URL, si existen
     $id_cliente = intval($_GET['id_cliente'] ?? 0);
     $id_vehiculo = intval($_GET['id_vehiculo'] ?? 0);
+    $id_asesor = 0; // O intval($_GET['id_asesor'] ?? 0); si alguna vez lo pasas por URL
 
     $cliente_nombre = '';   
     $vehiculo_placa = '';
@@ -122,195 +123,164 @@
                 <label for="descripcion_servicio">Descripción del Servicio</label>
             </div>
 
-            <button type="submit" class="btn">Guardar Recibo</button>
+            <button type="submit" id="btnGuardarRecibo" class="btn">Guardar Recibo</button>
         </form>
 
         <button class="btn" onclick="cargarContenido('<?= $ruta_volver ?>')">← Volver</button>
+<script>
+    // Esta función envolverá toda nuestra lógica para asegurar que el DOM esté listo.
+    function inicializarFormularioRecibo() {
 
-        <script>
-            // Buscador de Cliente
-            document.getElementById("buscador_cliente").addEventListener("input", async function () {
-                const query = this.value.trim();
-                const contenedor = document.getElementById("resultados_cliente");
-
-                if (query.length < 2) return contenedor.innerHTML = "";
-
-                try {
-                    const resp = await fetch(`recibos/buscar_cliente.php?q=${encodeURIComponent(query)}`);
-                    const data = await resp.json();
-
-                    contenedor.innerHTML = data.length === 0
-                        ? "<div class='item'>No se encontraron resultados</div>"
-                        : "";
-
-                    data.forEach(cliente => {
-                        const div = document.createElement("div");
-                        div.className = "item";
-                        div.textContent = `${cliente.nombre_completo} (${cliente.documento})`;
-                        div.onclick = () => {
-                            document.getElementById("buscador_cliente").value = cliente.nombre_completo;
-                            document.getElementById("id_cliente").value = cliente.id_cliente;
-                            contenedor.innerHTML = "";
-                        };
-                        contenedor.appendChild(div);
-                    });
-                } catch (err) {
-                    console.error("Error al buscar cliente:", err);
-                }
-            });
-
-            // Buscador de Vehículo
-            document.getElementById("buscador_vehiculo").addEventListener("input", async function () {
-                const query = this.value.trim();
-                const contenedor = document.getElementById("resultados_vehiculo");
-
-                if (query.length < 2) return contenedor.innerHTML = "";
-
-                try {
-                    const resp = await fetch(`recibos/buscar_vehiculo.php?q=${encodeURIComponent(query)}`);
-                    const data = await resp.json();
-
-                    contenedor.innerHTML = data.length === 0
-                        ? "<div class='item'>No se encontraron resultados</div>"
-                        : "";
-
-                    data.forEach(vehiculo => {
-                        const div = document.createElement("div");
-                        div.className = "item";
-                        div.textContent = vehiculo.placa;
-                        div.onclick = () => {
-                            document.getElementById("buscador_vehiculo").value = vehiculo.placa;
-                            document.getElementById("id_vehiculo").value = vehiculo.id_vehiculo;
-                            contenedor.innerHTML = "";
-                        };
-                        contenedor.appendChild(div);
-                    });
-                } catch (err) {
-                    console.error("Error al buscar vehículo:", err);
-                }
-            });
-
-            // Buscador de Asesor
-            document.getElementById("buscador_asesor").addEventListener("input", async function () {
-                const query = this.value.trim();
-                const contenedor = document.getElementById("resultados_asesor");
-
-                if (query.length < 2) return contenedor.innerHTML = "";
-
-                try {
-                    const resp = await fetch(`recibos/buscar_asesor.php?q=${encodeURIComponent(query)}`);
-                    const data = await resp.json();
-
-                    contenedor.innerHTML = data.length === 0
-                        ? "<div class='item'>No se encontraron resultados</div>"
-                        : "";
-
-                    data.forEach(asesor => {
-                        const div = document.createElement("div");
-                        div.className = "item";
-                        div.textContent = asesor.nombre;
-                        div.onclick = () => {
-                            document.getElementById("buscador_asesor").value = asesor.nombre;
-                            document.getElementById("id_asesor").value = asesor.id_asesor;
-                            contenedor.innerHTML = "";
-                        };
-                        contenedor.appendChild(div);
-                    });
-                } catch (err) {
-                    console.error("Error al buscar asesor:", err);
-                }
-            });
-
-    document.getElementById("form-crear-recibo").addEventListener("submit", async function (e) {
-        e.preventDefault();
-
-        const id_cliente = document.getElementById("id_cliente").value.trim();
-        const id_vehiculo = document.getElementById("id_vehiculo").value.trim();
-
-        console.log("🟡 Cliente ID:", id_cliente);
-        console.log("🟡 Vehículo ID:", id_vehiculo);
-
-        // Validar si los campos están vacíos
-        if (!id_cliente || !id_vehiculo) {
-            alert("⚠ Debes seleccionar un cliente y un vehículo.");
-            return;
+        // --- DEFINICIÓN DE FUNCIONES AUXILIARES ---
+        function debounce(func, delay = 300) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), delay);
+            };
         }
 
-        try {
-            const validacion = await fetch(`recibos/verificar_relacion_vehiculo.php?id_cliente=${id_cliente}&id_vehiculo=${id_vehiculo}`);
-            const estado = (await validacion.text()).trim();
-            console.log("🔵 Respuesta de validación:", estado);
+        function setupAutocomplete(inputId, resultsId, hiddenId, url, formatResult, onSelect) {
+            const input = document.getElementById(inputId);
+            const resultsContainer = document.getElementById(resultsId);
+            if (!input || !resultsContainer) return;
 
-            if (estado === "invalido") {
-                const confirmar = confirm("⚠ El vehículo seleccionado no pertenece al cliente. ¿Deseas continuar de todos modos?");
-                if (!confirmar) {
-                    console.log("🔴 El usuario canceló el envío porque la relación es inválida.");
+            const debouncedFetch = debounce(async (query) => {
+                if (query.length < 2) {
+                    resultsContainer.innerHTML = "";
                     return;
                 }
-            }
-
-            // Enviar si todo está bien o el usuario aceptó continuar
-            const formData = new FormData(this);
-
-            const resp = await fetch("recibos/guardar.php", {
-                method: "POST",
-                body: formData
+                try {
+                    const response = await fetch(`${url}?q=${encodeURIComponent(query)}`);
+                    const data = await response.json();
+                    resultsContainer.innerHTML = "";
+                    if (data.length === 0) {
+                        resultsContainer.innerHTML = "<div class='item'>No se encontraron resultados</div>";
+                        return;
+                    }
+                    data.forEach(item => {
+                        const div = document.createElement("div");
+                        div.className = "item";
+                        div.textContent = formatResult(item);
+                        div.onclick = () => onSelect(item, input, document.getElementById(hiddenId), resultsContainer);
+                        resultsContainer.appendChild(div);
+                    });
+                } catch (err) {
+                    console.error(`Error en autocompletar para ${inputId}:`, err);
+                    resultsContainer.innerHTML = "<div class='item' style='color:red;'>Error al buscar</div>";
+                }
             });
-
-            const texto = await resp.text();
-            console.log("🟢 Respuesta de guardar.php:", texto);
-
-            if (texto.trim() === "ok") {
-                cargarContenido('recibos/views/lista.php');
-            } else {
-                alert("Error al guardar: " + texto);
-            }
-        } catch (err) {
-            console.error("🔥 Error en el proceso:", err);
-            alert("Error inesperado en la solicitud.");
+            input.addEventListener("input", function() { debouncedFetch(this.value.trim()); });
         }
-    });
-    // --- SCRIPT PARA FORMATEAR EL CAMPO DE VALOR MONETARIO ---
 
-    // Obtenemos referencias a los dos campos de input
-    var inputValorVisible = document.getElementById('valor_visible');
-    var inputValorReal = document.getElementById('valor_servicio');
-
-    // Añadimos un "escuchador" al campo visible que se activa cada vez que se escribe
-    inputValorVisible.addEventListener('input', function(e) {
-        // 1. Tomamos el valor actual y quitamos cualquier caracter que no sea un dígito
-        let numeroLimpio = e.target.value.replace(/[^\d]/g, '');
-
-        // 2. Actualizamos el valor del campo oculto con el número limpio
-        // Esto es lo que se enviará al servidor
-        inputValorReal.value = numeroLimpio;
-
-        // 3. Formateamos el número limpio con separadores de miles para Colombia (puntos)
-        // y lo mostramos en el campo visible. Si está vacío, no mostramos nada.
-        if (numeroLimpio) {
-            const numeroFormateado = new Intl.NumberFormat('es-CO').format(numeroLimpio);
-            e.target.value = numeroFormateado;
-        } else {
-            e.target.value = '';
-        }
-    });
-    // --- LÓGICA PARA MOSTRAR/OCULTAR EL CAMPO DE DETALLE DE PAGO ---
-    const metodoPagoSelect = document.getElementById('metodo_pago');
-    const detallePagoContainer = document.getElementById('detalle_pago_container');
-    
-    if (metodoPagoSelect) {
-        metodoPagoSelect.addEventListener('change', function() {
-            if (this.value === 'transferencia') {
-                detallePagoContainer.style.display = 'block';
-                document.getElementById('detalle_pago').required = true;
-            } else {
-                detallePagoContainer.style.display = 'none';
-                document.getElementById('detalle_pago').required = false;
-                document.getElementById('detalle_pago').value = '';
+        // --- INICIALIZACIÓN DE COMPONENTES ---
+        setupAutocomplete('buscador_cliente', 'resultados_cliente', 'id_cliente', 'recibos/buscar_cliente.php', 
+            (item) => `${item.nombre_completo} (${item.documento})`,
+            (item, input, hidden, results) => {
+                input.value = item.nombre_completo;
+                hidden.value = item.id_cliente;
+                results.innerHTML = "";
             }
-        });
+        );
+
+        setupAutocomplete('buscador_vehiculo', 'resultados_vehiculo', 'id_vehiculo', 'recibos/buscar_vehiculo.php', 
+            (item) => item.placa,
+            (item, input, hidden, results) => {
+                input.value = item.placa;
+                hidden.value = item.id_vehiculo;
+                results.innerHTML = "";
+            }
+        );
+
+        setupAutocomplete('buscador_asesor', 'resultados_asesor', 'id_asesor', 'recibos/buscar_asesor.php', 
+            (item) => item.nombre,
+            (item, input, hidden, results) => {
+                input.value = item.nombre;
+                hidden.value = item.id_asesor;
+                results.innerHTML = "";
+            }
+        );
+
+        const formCrearRecibo = document.getElementById("form-crear-recibo");
+        const btnGuardar = document.getElementById("btnGuardarRecibo");
+
+        if (formCrearRecibo && btnGuardar) {
+            formCrearRecibo.addEventListener("submit", async function(e) {
+                e.preventDefault();
+                btnGuardar.disabled = true;
+                btnGuardar.textContent = 'Guardando...';
+
+                const id_cliente = document.getElementById("id_cliente").value.trim();
+                const id_vehiculo = document.getElementById("id_vehiculo").value.trim();
+
+                if (!id_cliente || !id_vehiculo) {
+                    alert("⚠ Debes seleccionar un cliente y un vehículo.");
+                    btnGuardar.disabled = false;
+                    btnGuardar.textContent = 'Guardar Recibo';
+                    return;
+                }
+                try {
+                    const validacion = await fetch(`recibos/verificar_relacion_vehiculo.php?id_cliente=${id_cliente}&id_vehiculo=${id_vehiculo}`);
+                    const estado = (await validacion.text()).trim();
+                    
+                    if (estado === "invalido") {
+                        if (!confirm("⚠ El vehículo seleccionado no pertenece al cliente. ¿Deseas continuar de todos modos?")) {
+                            btnGuardar.disabled = false;
+                            btnGuardar.textContent = 'Guardar Recibo';
+                            return;
+                        }
+                    }
+                    
+                    const formData = new FormData(formCrearRecibo);
+                    const resp = await fetch("recibos/guardar.php", {
+                        method: "POST",
+                        body: formData
+                    });
+                    const texto = await resp.text();
+
+                    if (texto.trim() === "ok") {
+                        cargarContenido('recibos/views/lista.php');
+                    } else {
+                        alert("Error al guardar: " + texto);
+                        btnGuardar.disabled = false;
+                        btnGuardar.textContent = 'Guardar Recibo';
+                    }
+                } catch (err) {
+                    alert("Error inesperado en la solicitud.");
+                    btnGuardar.disabled = false;
+                    btnGuardar.textContent = 'Guardar Recibo';
+                    console.error("🔥 Error en el proceso:", err);
+                }
+            });
+        }
+
+        var inputValorVisible = document.getElementById('valor_visible');
+        var inputValorReal = document.getElementById('valor_servicio');
+        if(inputValorVisible && inputValorReal) {
+            inputValorVisible.addEventListener('input', function(e) {
+                let val = e.target.value.replace(/[^\d]/g, '');
+                inputValorReal.value = val;
+                e.target.value = val ? new Intl.NumberFormat('es-CO').format(val) : '';
+            });
+        }
+        
+        const metodoPagoSelect = document.getElementById('metodo_pago');
+        const detallePagoContainer = document.getElementById('detalle_pago_container');
+        if (metodoPagoSelect && detallePagoContainer) {
+            metodoPagoSelect.addEventListener('change', function() {
+                let esTransferencia = this.value === 'transferencia';
+                detallePagoContainer.style.display = esTransferencia ? 'block' : 'none';
+                document.getElementById('detalle_pago').required = esTransferencia;
+                if (!esTransferencia) {
+                    document.getElementById('detalle_pago').value = '';
+                }
+            });
+        }
     }
-    </script>   
+
+    // --- PUNTO DE ENTRADA: LLAMAMOS A LA FUNCIÓN PRINCIPAL ---
+    inicializarFormularioRecibo();
+</script>
 <style>
     /* Daviplata (Rojo suave) */
     .opt-daviplata { background-color: #ffebee; color: #e30a0aff; }
