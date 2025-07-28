@@ -28,13 +28,60 @@ $id_sede_seleccionada = 1; // Sede por defecto
         .cierre-form input, .cierre-form textarea { width: 100%; padding: 8px; margin-bottom: 10px; }
         .cierre-form button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
         .caja-cerrada-msg { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; }
+        /* --- Estilos para el Contenedor de Filtros --- */
+        .filtros {
+            display: flex; /* Usamos Flexbox para alinear los elementos */
+            flex-wrap: wrap; /* Permite que los filtros pasen a la siguiente línea en pantallas pequeñas */
+            align-items: center; /* Centra verticalmente los elementos */
+            gap: 15px 25px; /* Espacio vertical y horizontal entre los filtros */
+            padding: 20px;
+            background-color: #f8f9fa; /* Un fondo gris muy claro */
+            border: 1px solid #dee2e6; /* Un borde sutil */
+            border-radius: 8px; /* Bordes redondeados */
+            margin-bottom: 25px; /* Espacio para separarlo del contenido de abajo */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Sombra suave para darle profundidad */
+        }
+
+        /* --- Estilos para las Etiquetas (Fecha, Sede) --- */
+        .filtros label {
+            font-weight: 600; /* Texto en semi-negrita */
+            color: #495057; /* Un color de texto gris oscuro */
+            margin-right: 5px; /* Pequeño espacio entre la etiqueta y el input */
+        }
+
+        /* --- Estilos para los Inputs (fecha y select) --- */
+        .filtros input[type="date"],
+        .filtros select {
+            padding: 8px 12px;
+            font-size: 16px;
+            font-family: inherit; /* Usa la misma fuente que el resto de la página */
+            color: #212529;
+            background-color: #fff;
+            border: 1px solid #ced4da;
+            border-radius: 6px; /* Bordes ligeramente más redondeados */
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Transición suave */
+            cursor: pointer;
+        }
+
+        /* --- Efecto al pasar el mouse por encima --- */
+        .filtros input[type="date"]:hover,
+        .filtros select:hover {
+            border-color: #a7b4c0;
+        }
+
+        /* --- Efecto al hacer clic (focus) --- */
+        .filtros input[type="date"]:focus,
+        .filtros select:focus {
+            border-color: #86b7fe; /* Un borde azul claro */
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25); /* Un resplandor azul tipo Bootstrap */
+            outline: none; /* Quitamos el borde por defecto del navegador */
+        }
     </style>
 </head>
 <body>
 
 <div class="caja-diaria">
-    <h2 style="text-align:center;">Cierre Diario de Operaciones</h2>
-    
+<h2 style="text-align:center; background-color: #007bff; color: white; padding: 10px;">Cierre Diario de Operaciones</h2>    
     <div class="filtros">
         <label for="fecha"><b>Fecha:</b></label>    
         <input type="date" id="fecha" name="fecha" value="<?= htmlspecialchars($fecha_seleccionada) ?>">

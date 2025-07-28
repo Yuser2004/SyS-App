@@ -51,9 +51,9 @@ $fecha_hasta = date('Y-m-t');
         <label for="fecha_hasta">Hasta:</label>
         <input type="date" id="fecha_hasta" name="fecha_hasta" value="<?= htmlspecialchars($fecha_hasta) ?>">
         
-        <a href="#" class="btn-gestionar-gastos" onclick="cargarContenido('finanzas/views/gestion_gastos.php'); return false;">
+<!--         <a href="#" class="btn-gestionar-gastos" onclick="cargarContenido('finanzas/views/gestion_gastos.php'); return false;">
             + Gestionar Gastos
-        </a>
+        </a> -->
     </div>
 
     <h3>Resumen del Período (<span id="rango-fechas-titulo"></span>)</h3>

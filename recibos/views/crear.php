@@ -111,10 +111,10 @@
                 <label for="detalle_pago">Cuenta de Destino</label>
                 <select name="detalle_pago" id="detalle_pago">
                     <option value="" disabled selected hidden>Selecciona una cuenta</option>
-                    <option class="opt-daviplata" value="Daviplata">Daviplata</option>
-                    <option class="opt-davivienda" value="Ahorro a la mano">Davivienda</option>
-                    <option class="opt-nequi" value="Nequi">Nequi</option>
-                    <option class="opt-bancolombia" value="Bancolombia">Bancolombia</option>
+                    <option class="opt-daviplata" value="BANCOLOMBIA ALBA">BANCOLOMBIA ALBA</option>
+                    <option class="opt-davivienda" value="BANCOLOMBIA IPSA">BANCOLOMBIA IPSA</option>
+                    <option class="opt-bancolombia" value="BANCOLOMBIA ANDREA">BANCOLOMBIA ANDREA</option>
+                    <option class="opt-nequi" value="NEQUI">NEQUI</option>
                 </select>
             </div>
             <!-- Descripción -->

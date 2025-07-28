@@ -50,9 +50,9 @@ if ($id_cliente > 0) {
             if (placa === "") {
                 errores.push("La placa es obligatoria.");
             } else {
-                // Validar longitud (exactamente 6 caracteres)
-                if (placa.length < 6 || placa.length > 6) {
-                    errores.push("La placa debe tener exactamente 6 caracteres.");
+                // Validar longitud (entre 4 y 8 caracteres)
+                if (placa.length < 4 || placa.length > 8) {
+                    errores.push("La placa debe tener entre 4 y 8 caracteres.");
                 }
 
                 // Validar solo letras y números
