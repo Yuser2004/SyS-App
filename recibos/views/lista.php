@@ -1,31 +1,132 @@
 <?php
 include __DIR__ . '/../models/conexion.php';
-$recibos = $conn->query("
-    SELECT 
-        r.id, 
-        r.fecha_tramite, 
-        c.nombre_completo AS cliente, 
-        v.placa, 
-        a.nombre AS asesor, 
-        r.valor_servicio, 
-        r.estado, 
-        r.metodo_pago, 
-        r.concepto_servicio AS concepto,
-        -- LA CORRECCIÓN CLAVE: Usamos una subconsulta para sumar los egresos de forma segura
-        (SELECT SUM(e.monto) FROM egresos e WHERE e.recibo_id = r.id) AS valor_total_egresos
-    FROM recibos r
-    LEFT JOIN clientes c ON r.id_cliente = c.id_cliente
-    LEFT JOIN vehiculo v ON r.id_vehiculo = v.id_vehiculo
-    LEFT JOIN asesor a ON r.id_asesor = a.id_asesor
-    -- Ya no se necesita el JOIN a egresos ni el GROUP BY aquí
-    ORDER BY r.id DESC
-");
 
+// --- PASO 1: Configurar paginación y filtros ---
+$recibos_por_pagina = 25;
+$pagina_actual = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
+if ($pagina_actual < 1) {
+    $pagina_actual = 1;
+}
+$offset = ($pagina_actual - 1) * $recibos_por_pagina;
+
+$busqueda = $_GET['busqueda'] ?? '';
+$estado = $_GET['estado'] ?? '';
+$fechaDesde = $_GET['fechaDesde'] ?? '';
+$fechaHasta = $_GET['fechaHasta'] ?? '';
+
+$where_clauses = [];
+$params = [];
+$types = '';
+
+if (!empty($busqueda)) {
+    $where_clauses[] = "(c.nombre_completo LIKE ? OR v.placa LIKE ? OR a.nombre LIKE ?)";
+    $like_param = "%$busqueda%";
+    array_push($params, $like_param, $like_param, $like_param);
+    $types .= 'sss';
+}
+if (!empty($estado)) {
+    $where_clauses[] = "r.estado = ?";
+    $params[] = $estado;
+    $types .= 's';
+}
+if (!empty($fechaDesde)) {
+    $where_clauses[] = "r.fecha_tramite >= ?";
+    $params[] = $fechaDesde;
+    $types .= 's';
+}
+if (!empty($fechaHasta)) {
+    $where_clauses[] = "r.fecha_tramite <= ?";
+    $params[] = $fechaHasta;
+    $types .= 's';
+}
+
+// --- PASO 2: Contar el total de registros (CON FILTROS) ---
+$sql_conteo = "SELECT COUNT(r.id) as total FROM recibos r 
+               LEFT JOIN clientes c ON r.id_cliente = c.id_cliente
+               LEFT JOIN vehiculo v ON r.id_vehiculo = v.id_vehiculo
+               LEFT JOIN asesor a ON r.id_asesor = a.id_asesor";
+
+if (!empty($where_clauses)) {
+    $sql_conteo .= " WHERE " . implode(' AND ', $where_clauses);
+}
+
+$stmt_conteo = $conn->prepare($sql_conteo);
+if (!empty($types)) {
+    // Usamos los mismos parámetros de filtro (sin LIMIT/OFFSET)
+    $stmt_conteo->bind_param($types, ...$params);
+}
+$stmt_conteo->execute();
+$resultado_conteo = $stmt_conteo->get_result();
+$total_registros = $resultado_conteo->fetch_assoc()['total'] ?? 0;
+
+// --- PASO 3: Calcular el total de páginas ---
+$total_paginas = ceil($total_registros / $recibos_por_pagina);
+if($total_paginas == 0) {
+    $total_paginas = 1; // Para que muestre "Página 1 de 1" si no hay resultados
+}
+
+// --- PASO 4: Obtener los registros de la página actual (CON FILTROS Y LÍMITE) ---
+$sql = "SELECT r.id, r.fecha_tramite, c.nombre_completo AS cliente, v.placa, a.nombre AS asesor, r.valor_servicio, r.estado, r.metodo_pago, r.concepto_servicio AS concepto, (SELECT SUM(e.monto) FROM egresos e WHERE e.recibo_id = r.id) AS valor_total_egresos 
+        FROM recibos r 
+        LEFT JOIN clientes c ON r.id_cliente = c.id_cliente 
+        LEFT JOIN vehiculo v ON r.id_vehiculo = v.id_vehiculo 
+        LEFT JOIN asesor a ON r.id_asesor = a.id_asesor";
+
+if (!empty($where_clauses)) {
+    $sql .= " WHERE " . implode(' AND ', $where_clauses);
+}
+
+$sql .= " ORDER BY r.id DESC LIMIT ? OFFSET ?";
+$params[] = $recibos_por_pagina;
+$params[] = $offset;
+$types .= 'ii';
+
+$stmt = $conn->prepare($sql);
+if ($types) {
+    $stmt->bind_param($types, ...$params);
+}
+$stmt->execute();
+$recibos = $stmt->get_result();
 ?>
 
 <link rel="stylesheet" href="css/tabla_estilo.css">
 <link rel="stylesheet" href="recibos/public/egresos_modal.css">
+<style>
+    /* --- Estilos para el Contenedor de Paginación --- */
+.paginacion {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px; /* Espacio entre los elementos */
+    margin-top: 25px;
+    padding-bottom: 20px;
+    font-family: 'Segoe UI', sans-serif;
+}
 
+/* --- Estilo para los botones "Anterior" y "Siguiente" --- */
+.paginacion .btn-paginacion {
+    padding: 8px 16px;
+    border: 1px solid #dee2e6;
+    background-color: #ffffff;
+    color: #007bff;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: 600;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.paginacion .btn-paginacion:hover {
+    background-color: #007bff;
+    color: #ffffff;
+}
+
+/* --- Estilo para el texto "Página X de Y" --- */
+.paginacion .info-pagina {
+    font-size: 16px;
+    color: #6c757d;
+    font-weight: 500;
+}
+</style>
 <div class="members">
     <a href="#"
         class="btnfos btnfos-3"
@@ -129,6 +230,33 @@ $recibos = $conn->query("
             <?php endif; ?>
         </tbody>
     </table>
+    <div class="paginacion">
+        <?php
+        // Para mantener los filtros al cambiar de página
+        $parametros_url = http_build_query([
+            'busqueda' => $busqueda,
+            'estado' => $estado,
+            'fechaDesde' => $fechaDesde,
+            'fechaHasta' => $fechaHasta
+        ]);
+        ?>
+
+        <?php if ($pagina_actual > 1): ?>
+            <a href="#" class="btn-paginacion" onclick="cargarContenido('recibos/views/lista.php?pagina=<?= $pagina_actual - 1 ?>&<?= $parametros_url ?>'); return false;">
+                &laquo; Anterior
+            </a>
+        <?php endif; ?>
+
+        <span class="info-pagina">
+            Página <?= $pagina_actual ?> de <?= $total_paginas ?>
+        </span>
+
+        <?php if ($pagina_actual < $total_paginas): ?>
+            <a href="#" class="btn-paginacion" onclick="cargarContenido('recibos/views/lista.php?pagina=<?= $pagina_actual + 1 ?>&<?= $parametros_url ?>'); return false;">
+                Siguiente &raquo;
+            </a>
+        <?php endif; ?>
+    </div>
 </div>
 <script>
     // =======================================================
