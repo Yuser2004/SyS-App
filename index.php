@@ -113,8 +113,6 @@
 
         <!-- SCRIPT PARA CARGA DINÁMICA -->
         <script>
-        // En tu archivo index.php, esta es la única función que debes reemplazar.
-
         function cargarContenido(ruta) {
             // 1. LIMPIA los scripts de la vista anterior.
             // Busca todos los scripts que hemos añadido dinámicamente y los elimina.
@@ -153,12 +151,34 @@
                 .catch(error => console.error('Error al cargar contenido:', error));
         }
 
+document.addEventListener('change', function(event) {
+    // Verificamos si el elemento que cambió es nuestro select 'tipo_egreso'
+    if (event.target && event.target.id === 'tipo_egreso') {
+        
+        const tipoEgresoSelect = event.target;
+        const camposPrestamoDiv = document.getElementById('campos_prestamo_div');
+        const selectSedeOrigen = document.getElementById('sede_origen_id');
+
+        if (!camposPrestamoDiv || !selectSedeOrigen) {
+            return; // Salimos si no se encuentran los elementos
+        }
+
+        if (tipoEgresoSelect.value === 'prestamo') {
+            camposPrestamoDiv.style.display = 'block';
+            selectSedeOrigen.required = true; // El origen es obligatorio
+        } else {
+            camposPrestamoDiv.style.display = 'none';
+            selectSedeOrigen.required = false; // Ya no es obligatorio
+            selectSedeOrigen.value = ''; // Limpiar el valor
+        }
+    }
+});
+
         // Carga inicial al abrir la aplicación por primera vez
         document.addEventListener('DOMContentLoaded', function() {
             cargarContenido('recibos/views/lista.php'); // O la vista que prefieras por defecto
         });
         </script>
      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
     </body>
     </html>

@@ -1,7 +1,0 @@
-"ID Recibo",Fecha,Cliente,Placa,Concepto,Asesor,"Valor Servicio",Estado,"Metodo de Pago","Valor Total Egresos"
-315,2025-07-28,"YUSER ESTIFHEN PALACIOS BLANDON",567FGH,"Servicio de SOAT","LINA MARIA ESPINOSA CAMPO",2000000,completado,efectivo,0
-314,2025-07-28,"Luciana Muñoz Ríos",123ZXC,"SOAT Carro","ALBEIRO CADENAS",970000,completado,tarjeta,0
-286,2025-07-28,"Samuel Moreno Herrera",123ZXC,"Certificado de Tradición","ALBEIRO CADENAS",65000,completado,efectivo,0
-285,2025-07-28,"Valeria Castro Vargas",ZXC123,"SOAT Carro","Alma Catalina",1220000,completado,transferencia,0
-230,2025-07-28,"Valentina Martínez González",123ZXC,"Traspaso Vehículo","ALBEIRO CADENAS",430000,completado,efectivo,0
-229,2025-07-28,"Santiago Rodríguez López",ZXC123,"Licencia de Conducción C1","Alma Catalina",1150000,completado,tarjeta,0

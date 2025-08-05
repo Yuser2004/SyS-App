@@ -31,18 +31,29 @@ if ($recibo_id > 0) {
     }
     $stmt_recibo->close();
 
-    // 2. Consulta para obtener todos los egresos asociados a este recibo
-    $stmt_egresos = $conn->prepare("SELECT * FROM egresos WHERE recibo_id = ?");
+    // 2. Consulta de egresos AHORA INCLUYE los nombres de las sedes
+    $stmt_egresos = $conn->prepare("
+        SELECT 
+            e.*, 
+            so.nombre AS sede_origen_nombre, 
+            sd.nombre AS sede_destino_nombre
+        FROM egresos e
+        LEFT JOIN sedes so ON e.sede_origen_id = so.id
+        LEFT JOIN sedes sd ON e.sede_destino_id = sd.id
+        WHERE e.recibo_id = ?
+    ");
     $stmt_egresos->bind_param("i", $recibo_id);
     $stmt_egresos->execute();
     $egresos = $stmt_egresos->get_result()->fetch_all(MYSQLI_ASSOC);
     $stmt_egresos->close();
 
-    // 3. Cálculos financieros para este recibo
-    foreach ($egresos as $egreso) {
-        $total_egresos += $egreso['monto'];
-    }
+    // 3. Cálculos: AHORA SUMAMOS SOLO los egresos de TIPO SERVICIO para la utilidad
     if ($recibo) {
+        foreach ($egresos as $egreso) {
+            if ($egreso['tipo'] == 'servicio') { // <-- LA CLAVE ESTÁ AQUÍ
+                $total_egresos += $egreso['monto'];
+            }
+        }
         $utilidad_recibo = $recibo['valor_servicio'] - $total_egresos;
     }
 }
@@ -57,6 +68,7 @@ if (!$recibo) {
     <meta charset="UTF-8">
     <title>Detalle del Recibo #<?= htmlspecialchars($recibo['id']) ?></title>
     <style>
+        /* Todos tus estilos CSS originales se mantienen aquí... */
         .detalle-container { font-family: 'Segoe UI', sans-serif; padding: 20px; max-width: 1200px; margin: auto; }
         .detalle-header { text-align: center; margin-bottom: 20px; }
         .detalle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -64,81 +76,19 @@ if (!$recibo) {
         .card-info h3 { margin-top: 0; color: #007bff; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
         .card-info p { margin: 10px 0; line-height: 1.6; }
         .card-info strong { color: #343a40; }
-        .card-finanzas { grid-column: 1 / -1; /* Ocupa todo el ancho */ }
+        .card-finanzas { grid-column: 1 / -1; }
         .finanzas-resumen { display: flex; justify-content: space-around; text-align: center; margin: 20px 0; }
         .resumen-numero h4 { margin: 0; color: #6c757d; }
         .resumen-numero .numero { font-size: 3em; font-weight: bold; color: #343a40; }
-        .lista-egresos { list-style: none; padding: 0; }
-        .lista-egresos li { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #e9ecef; }
-        .lista-egresos li:last-child { border-bottom: none; }
-        .btn-comprobante {
-            display: inline-block;
-            background-color: #007bff; /* Color azul principal */
-            color: white;
-            padding: 8px 15px;
-            text-decoration: none;
-            border-radius: 5px;
-            font-size: 0.9em;
-            font-weight: bold;
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out, transform 0.1s ease;
-        }
-
-        .btn-comprobante:hover {
-            background-color: #0056b3; /* Un azul más oscuro al pasar el mouse */
-            transform: translateY(-1px); /* Efecto sutil de levantamiento */
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        /* ======================================================= */
-        /* NUEVOS ESTILOS PARA LA LISTA DE EGRESOS CON DIVS        */
-        /* ======================================================= */
-
-        /* Contenedor principal de la lista de egresos */
-        .lista-egresos {
-            margin-top: 20px;
-            border: 1px solid #e9ecef;
-            border-radius: 5px;
-        }
-
-        /* Cada fila de egreso (reemplaza a <li>) */
-        .item-egreso {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 15px;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        /* Quita el borde del último elemento para un look más limpio */
-        .item-egreso:last-child {
-            border-bottom: none;
-        }
-
-        /* Contenedor para descripción y monto */
-        .detalle-egreso-info {
-            display: flex;
-            align-items: center;
-            gap: 10px; /* Crea la separación */
-        }
-
-        /* Estilo para la descripción */
-        .detalle-egreso-descripcion {
-            font-weight: bold;
-            color: #343a40;
-        }
-
-        /* El estilo para el badge rojo no cambia */
-        .monto-egreso-badge {
-            background-color: #dc3545;
-            color: white;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 0.8em;
-            font-weight: bold;
-            white-space: nowrap; /* Evita que el monto se parta en dos líneas */
-        }
+        .lista-egresos { margin-top: 20px; border: 1px solid #e9ecef; border-radius: 5px; }
+        .item-egreso { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid #e9ecef; }
+        .item-egreso:last-child { border-bottom: none; }
+        .detalle-egreso-info { display: flex; align-items: center; gap: 10px; }
+        .detalle-egreso-descripcion { font-weight: 500; color: #343a40; }
+        .btn-comprobante { display: inline-block; background-color: #007bff; color: white; padding: 8px 15px; text-decoration: none; border-radius: 5px; font-size: 0.9em; font-weight: bold; border: none; cursor: pointer; transition: background-color 0.2s; }
+        .btn-comprobante:hover { background-color: #0056b3; }
+        .monto-egreso-badge { background-color: #dc3545; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; white-space: nowrap; }
+        .monto-prestamo-badge { background-color: #6c757d; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; white-space: nowrap; }
         .utilidad-final { text-align: right; font-size: 1.5em; font-weight: bold; margin-top: 20px; }
         .utilidad-final .positivo { color: #28a745; }
         .utilidad-final .negativo { color: #dc3545; }
@@ -174,7 +124,6 @@ if (!$recibo) {
             <?php endif; ?>
             <p><strong>Estado:</strong> <?= htmlspecialchars(ucfirst($recibo['estado'])) ?></p>
         </div>
-
         <div class="card-info card-finanzas">
             <h3>Resumen Financiero del Recibo</h3>
             <div class="finanzas-resumen">
@@ -184,26 +133,38 @@ if (!$recibo) {
                 </div>
             </div>
 
-        <div class="lista-egresos">
-            <?php if (count($egresos) > 0): ?>
-                <?php foreach ($egresos as $egreso): ?>
-                    <div class="item-egreso">
-                        <span class="detalle-egreso-info">
-                            <span class="detalle-egreso-descripcion"><?= htmlspecialchars($egreso['descripcion']) ?>:</span>
-                            <span class="monto-egreso-badge">-$<?= number_format($egreso['monto'], 0, ',', '.') ?></span>
-                        </span>
-                        <?php if (!empty($egreso['comprobante_pdf'])): ?>
-                            <a href="<?= htmlspecialchars($egreso['comprobante_pdf']) ?>" target="_blank" class="btn-comprobante">Ver<br>Comprobante</a>
-                        <?php endif; ?>
-                    </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <div class="item-egreso">No hay egresos registrados para este recibo.</div>
-            <?php endif; ?>
-        </div>
+            <div class="lista-egresos">
+                <?php if (count($egresos) > 0): ?>
+                    <?php foreach ($egresos as $egreso): ?>
+                        <div class="item-egreso">
+                            <span class="detalle-egreso-info">
+                                <span class="detalle-egreso-descripcion">
+                                    <?php if ($egreso['tipo'] == 'prestamo'): ?>
+                                        <strong>Préstamo:</strong> <?= htmlspecialchars($egreso['descripcion']) ?><br>
+                                        <small style="color: #6c757d;">
+                                            Desde: <strong><?= htmlspecialchars($egreso['sede_origen_nombre'] ?? 'N/A') ?></strong>
+                                        </small>
+                                    <?php else: ?>
+                                        <?= htmlspecialchars($egreso['descripcion']) ?>:
+                                    <?php endif; ?>
+                                </span>
+                                <span class="<?php echo ($egreso['tipo'] == 'prestamo') ? 'monto-prestamo-badge' : 'monto-egreso-badge'; ?>">
+                                    -$<?= number_format($egreso['monto'], 0, ',', '.') ?>
+                                </span>
+                            </span>
+                            
+                            <?php if (!empty($egreso['comprobante_pdf'])): ?>
+                                <a href="<?= htmlspecialchars($egreso['comprobante_pdf']) ?>" target="_blank" class="btn-comprobante">Ver<br>Comprobante</a>
+                            <?php endif; ?>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="item-egreso">No hay egresos registrados para este recibo.</div>
+                <?php endif; ?>
+            </div>
 
             <div class="utilidad-final">
-                Ganancia Neta del Recibo: 
+                Ganancia Neta del Recibo (solo egresos de servicio): 
                 <span class="<?= $utilidad_recibo >= 0 ? 'positivo' : 'negativo' ?>">
                     $<?= number_format($utilidad_recibo, 0, ',', '.') ?>
                 </span>

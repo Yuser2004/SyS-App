@@ -1,6 +1,8 @@
 <?php
-// El PHP ahora solo define las fechas por defecto para la carga inicial en el HTML.
-// El verdadero cálculo se hace en la API.
+include __DIR__ . '/../models/conexion.php';
+// Ahora que $conn existe, esta parte funcionará
+$sql_sedes = "SELECT id, nombre FROM sedes ORDER BY nombre";
+$resultado_sedes = $conn->query($sql_sedes);
 $fecha_desde = date('Y-m-01');
 $fecha_hasta = date('Y-m-t');
 ?>
@@ -50,7 +52,18 @@ $fecha_hasta = date('Y-m-t');
         
         <label for="fecha_hasta">Hasta:</label>
         <input type="date" id="fecha_hasta" name="fecha_hasta" value="<?= htmlspecialchars($fecha_hasta) ?>">
-        
+
+                <label for="filtro_sede">Sede:</label>
+        <select id="filtro_sede" name="sede">
+            <option value="">Todas las Sedes</option>
+            <?php
+            if ($resultado_sedes->num_rows > 0) {
+                while($sede = $resultado_sedes->fetch_assoc()) {
+                    echo '<option value="' . htmlspecialchars($sede['id']) . '">' . htmlspecialchars($sede['nombre']) . '</option>';
+                }
+            }
+            ?>
+        </select>
 <!--         <a href="#" class="btn-gestionar-gastos" onclick="cargarContenido('finanzas/views/gestion_gastos.php'); return false;">
             + Gestionar Gastos
         </a> -->
@@ -64,9 +77,6 @@ $fecha_hasta = date('Y-m-t');
         <div class="resumen-caja egresos">
             <h3>Egresos por Servicio</h3><p class="monto" id="resumen-egresos">$0</p><p class="porcentaje" id="porcentaje-egresos">(0% del Ingreso)</p>
         </div>
-        <div class="resumen-caja gastos">
-            <h3>Costos y Gastos Fijos</h3><p class="monto" id="resumen-gastos">$0</p><p class="porcentaje" id="porcentaje-gastos">(0% del Ingreso)</p>
-        </div>
         <div class="resumen-caja utilidad">
             <h3>Utilidad Real</h3><p class="monto" id="resumen-utilidad">$0</p><p class="porcentaje" id="porcentaje-utilidad">(0% del Ingreso)</p>
         </div>
@@ -76,19 +86,18 @@ $fecha_hasta = date('Y-m-t');
         <table class="tabla-detalle">
             <thead>
                 <tr>
-                    <th>Método de Pago</th><th>Ingresos</th><th>Salidas (Egresos + Gastos)</th><th>Balance</th>
-                </tr>
+                    <th>Método de Pago</th><th>Ingresos</th><th>Egresos por Servicio</th><th>Balance</th> </tr>
             </thead>
             <tbody id="cuerpo-tabla-pagos"></tbody>
         </table>
     </div>
+
     <div class="detalle-diario">
         <h3>Desglose Diario</h3>
         <table class="tabla-detalle">
             <thead>
                 <tr>
-                    <th>Fecha</th> <th>Ingresos</th> <th>Egresos</th> <th>Ganancia Neta del Día</th>
-                </tr>
+                    <th>Fecha</th> <th>Ingresos</th> <th>Egresos</th> <th>Utilidad Neta del Día</th> </tr>
             </thead>
             <tbody id="cuerpo-tabla-detalle"></tbody>
         </table>
@@ -97,57 +106,69 @@ $fecha_hasta = date('Y-m-t');
 
 <script>
 (function() {
+    // 1. OBTENER REFERENCIAS A LOS ELEMENTOS DEL DOM
     const fechaDesdeInput = document.getElementById('fecha_desde');
     const fechaHastaInput = document.getElementById('fecha_hasta');
-    
-    if (!fechaDesdeInput || !fechaHastaInput) {
-        return;
-    }
-    
+    const filtroSede = document.getElementById('filtro_sede'); // <-- AÑADIDO
+
+    // Referencias a los elementos que se van a actualizar
     const rangoFechasTitulo = document.getElementById('rango-fechas-titulo');
     const resumenIngresos = document.getElementById('resumen-ingresos');
     const resumenEgresos = document.getElementById('resumen-egresos');
-    const resumenGastos = document.getElementById('resumen-gastos');
+    // const resumenGastos = document.getElementById('resumen-gastos'); // <-- ELIMINADO
     const resumenUtilidad = document.getElementById('resumen-utilidad');
     const porcentajeEgresos = document.getElementById('porcentaje-egresos');
-    const porcentajeGastos = document.getElementById('porcentaje-gastos');
+    // const porcentajeGastos = document.getElementById('porcentaje-gastos'); // <-- ELIMINADO
     const porcentajeUtilidad = document.getElementById('porcentaje-utilidad');
     const cuerpoTablaDetalle = document.getElementById('cuerpo-tabla-detalle');
     const cuerpoTablaPagos = document.getElementById('cuerpo-tabla-pagos');
 
+    // Formateador de moneda colombiana
     const formatoMoneda = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
 
+    // 2. FUNCIÓN PRINCIPAL PARA ACTUALIZAR EL REPORTE
     async function actualizarReporte() {
+        // Obtenemos los valores de todos los filtros
         const fechaDesde = fechaDesdeInput.value;
         const fechaHasta = fechaHastaInput.value;
+        const sedeId = filtroSede.value; // <-- AÑADIDO: Obtenemos el ID de la sede
 
-        const response = await fetch(`finanzas/views/api_reporte.php?fecha_desde=${fechaDesde}&fecha_hasta=${fechaHasta}`);
+        // Construimos la URL para la API, incluyendo el nuevo parámetro `sede_id`
+        const url = `finanzas/views/api_reporte.php?fecha_desde=${fechaDesde}&fecha_hasta=${fechaHasta}&sede_id=${sedeId}`;
+        
+        // Hacemos la llamada a la API
+        const response = await fetch(url);
         const data = await response.json();
 
+        // 3. ACTUALIZAR LAS CAJAS DE RESUMEN
+        // Leemos los datos del JSON (ya no se usa 'gastos')
         const ingresos = parseFloat(data.resumen.total_ingresos) || 0;
         const egresos = parseFloat(data.resumen.total_egresos) || 0;
-        const gastos = parseFloat(data.resumen.total_gastos) || 0;
         const utilidad = parseFloat(data.resumen.utilidad_final) || 0;
 
+        // Actualizamos el contenido en el HTML
         resumenIngresos.textContent = formatoMoneda.format(ingresos);
         resumenEgresos.textContent = formatoMoneda.format(egresos);
-        resumenGastos.textContent = formatoMoneda.format(gastos);
+        // resumenGastos.textContent = formatoMoneda.format(gastos); // <-- ELIMINADO
         resumenUtilidad.textContent = formatoMoneda.format(utilidad);
         
+        // Calculamos y actualizamos los porcentajes
         if (ingresos > 0) {
             porcentajeEgresos.textContent = `(${(egresos / ingresos * 100).toFixed(1)}% del Ingreso)`;
-            porcentajeGastos.textContent = `(${(gastos / ingresos * 100).toFixed(1)}% del Ingreso)`;
+            // porcentajeGastos.textContent = `(${(gastos / ingresos * 100).toFixed(1)}% del Ingreso)`; // <-- ELIMINADO
             porcentajeUtilidad.textContent = `(${(utilidad / ingresos * 100).toFixed(1)}% del Ingreso)`;
         } else {
             porcentajeEgresos.textContent = '(0% del Ingreso)';
-            porcentajeGastos.textContent = '(0% del Ingreso)';
+            // porcentajeGastos.textContent = '(0% del Ingreso)'; // <-- ELIMINADO
             porcentajeUtilidad.textContent = '(0% del Ingreso)';
         }
 
+        // Actualizamos el título con el rango de fechas
         const fechaDesdeFormato = new Date(fechaDesde + 'T00:00:00').toLocaleDateString('es-CO');
         const fechaHastaFormato = new Date(fechaHasta + 'T00:00:00').toLocaleDateString('es-CO');
         rangoFechasTitulo.textContent = `${fechaDesdeFormato} - ${fechaHastaFormato}`;
         
+        // 4. ACTUALIZAR LA TABLA DE DESGLOSE POR MÉTODO DE PAGO
         cuerpoTablaPagos.innerHTML = '';
         const desglosePagos = data.desglose_pagos;
         for (const metodo in desglosePagos) {
@@ -163,6 +184,7 @@ $fecha_hasta = date('Y-m-t');
             `;
         }
 
+        // 5. ACTUALIZAR LA TABLA DE DESGLOSE DIARIO
         cuerpoTablaDetalle.innerHTML = '';
         if (data.detalle && data.detalle.length > 0) {
             data.detalle.forEach(fila => {
@@ -182,9 +204,14 @@ $fecha_hasta = date('Y-m-t');
         }
     }
 
+    // 6. ASIGNAR EVENTOS A LOS FILTROS
+    // La función se ejecutará cada vez que cambie una fecha o la sede
     fechaDesdeInput.addEventListener('change', actualizarReporte);
     fechaHastaInput.addEventListener('change', actualizarReporte);
+    filtroSede.addEventListener('change', actualizarReporte); // <-- AÑADIDO
 
+    // 7. CARGA INICIAL DEL REPORTE
+    // Se ejecuta una vez cuando la página carga por primera vez
     actualizarReporte();
 })();
 </script>
