@@ -1,6 +1,6 @@
 cd /c/xampp/htdocs/SyS-app
 
-
+ip correcta de mi host: 162.240.99.156
 git add .
 git commit -m "Descripción clara del cambio"
 git push
@@ -19,22 +19,18 @@ SyS-app/
 │   ├── models/
 │   │   └── conexion.php
 │   └── views/
-│       ├── reporte.php           # El reporte financiero general
-│       ├── gestion_gastos.php      # La herramienta para añadir sueldos, arriendos, etc.
-│       │
-│       ├── api_reporte.php
+│       ├── api_caja_diaria.php          
+│       ├── reporte.php          
+│       ├── api_reporte.php          
+│       ├── caja_diaria.php          
+│       ├── devolucion_modal.php          
+│       ├── guardar_devolucion.php          
+│       ├── gestion_gastos.php     
 │       ├── guardar_gasto.php
 │       └── eliminar_gasto.php
 │
-├── caja/                     
-│   ├── models/
-│   │   └── conexion.php
-│   └── views/
-│       ├── caja_diaria.php       # La interfaz para el cierre de caja
-│       │
-│       ├── api_caja_diaria.php
-│       └── guardar_cierre.php
-│        
+├── helpers/ 
+│       ├── NumeroALetras.php          
 ├── asesor/
 │   ├── models/
 │   │   └── conexion.php
@@ -50,10 +46,14 @@ SyS-app/
 │   │   └── conexion.php
 │   ├── views/
 │   │   └── crear_sede.php
+│   │   └── editar_sede.php
 │   │   └── lista_sedes.php
 │   ├── actualizar_sede.php
 │   ├── eliminar_sede.php
 │   ├── guardar_sede.php
+│   ├── verificar_nombre.php
+├── uploads/
+│   ├── comprobantes/
 ├── cliente/
 │   ├── models/
 │   │   └── conexion.php
@@ -64,6 +64,7 @@ SyS-app/
 │   ├── public/
 │   │   └── css/
 │   │       └── estilos_form.css 
+│   │       └── tabla_estilo.css 
 │   │        js/
 │   │       └── buscador.js      
 │   └── views/
@@ -74,10 +75,9 @@ SyS-app/
 ├── vehiculo/
 │   ├── guardar.php        
 │   ├── eliminar.php         
-│   ├── actualizar.php         
-│   ├── public/
-│   │   └── css/
-│   │       └── estilos_form.css  
+│   ├── actualizar.php          
+│   ├── buscar_cliente.php          
+│   ├── verificar_placa.php          
 │   ├── models/
 │   │   └── conexion.php    
 │   └── views/
@@ -91,23 +91,26 @@ SyS-app/
 │   ├── listar_egresos.php       
 │   ├── buscar_vehiculo.php      
 │   ├── buscar_asesor.php        
+│   ├── buscar_cliente.php        
+│   ├── buscar_vehiculo.php        
+│   ├── exportar_excel.php        
+│   ├── guardar_egreso.php        
+│   ├── verificar_relacion_vehiculo.php        
 │   ├── models/
 │   │   └── conexion.php
 │   ├── public/
 │   │   ├── estilos_form.css
-│   │   ├──buscador_vehiculo.js
-│   │   ├──buscador_asesor.js
+│   │   ├── egresos_modal.css
 │   └── views/
 │       ├── crear.php
 │       ├── editar.php
 │       ├── lista.php
-│       ├── egresos_modal.php         # Modal para agregar/ver egresos
-│
+│       ├── egresos_modal.php        
+│       ├── detalle_recibo.php        
+│       ├── impresion.php        
 └── css/     
 │    ├── estilos_form.css    
+│    ├── header.css    
 │    ├── tabla_estilo.css             
 │    ├── botones.css             
 ├── index.php            
-├── cliente.png            
-├── coche.png            
-├── hogar.png 

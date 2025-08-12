@@ -124,7 +124,13 @@
             </div>
             <hr>
             <hr>
-<h4 style="text-align:center; margin-top:20px;">Movimientos no Operativos</h4>
+<!-- CÓDIGO NUEVO CON BOTÓN -->
+<h4 style="text-align:center; margin-top:20px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+    <span>Movimientos no Operativos</span>
+    <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle" data-bs-toggle="modal" data-bs-target="#infoMovimientosModal" title="¿Qué significa esto?" style="width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; padding: 0; font-weight: bold;">
+        ?
+    </button>
+</h4>
 <div class="resumen-linea">
     <span>(+) Préstamos Recibidos de otras Sedes:</span>
     <span class="ingreso-monto" id="total-prestamos-recibidos">$0</span>
@@ -354,5 +360,57 @@
 })();
 </script>
     <?php include 'devolucion_modal.php'; ?>
+    <!-- PEGA ESTE BLOQUE AL FINAL DE TU ARCHIVO caja_diaria.php -->
+
+<!-- Modal de Información de Movimientos -->
+<div class="modal fade" id="infoMovimientosModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="infoModalLabel">Guía de Movimientos no Operativos</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <p class="lead">Cada movimiento se ve desde la perspectiva de <strong>tu sede actual</strong>.</p>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped" style="font-size: 0.9rem;">
+              <thead class="table-dark">
+                <tr>
+                  <th style="width: 25%;">Concepto en TU Caja</th>
+                  <th>¿Qué significa?</th>
+                  <th style="width: 15%;" class="text-center">¿Cómo afecta a TU dinero?</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="vertical-align: middle;">
+                  <td><strong>(+) Préstamos Recibidos</strong></td>
+                  <td>Otra sede te presta dinero a ti.</td>
+                  <td class="text-center"><span class="badge bg-success">ENTRA</span></td>
+                </tr>
+                <tr style="vertical-align: middle;">
+                  <td><strong>(+) Devoluciones Recibidas</strong></td>
+                  <td>Te devuelven un dinero que tú habías prestado anteriormente.</td>
+                  <td class="text-center"><span class="badge bg-success">ENTRA</span></td>
+                </tr>
+                <tr style="vertical-align: middle;">
+                  <td><strong>(-) Préstamos Enviados</strong></td>
+                  <td>Tú le prestas dinero a otra sede.</td>
+                  <td class="text-center"><span class="badge bg-danger">SALE</span></td>
+                </tr>
+                <tr style="vertical-align: middle;">
+                  <td><strong>(-) Devoluciones Enviadas</strong></td>
+                  <td>Tú devuelves un dinero que te habían prestado anteriormente.</td>
+                  <td class="text-center"><span class="badge bg-danger">SALE</span></td>
+                </tr>
+              </tbody>
+            </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Entendido</button>
+      </div>
+    </div>
+  </div>
+</div>
     </body>
     </html>
