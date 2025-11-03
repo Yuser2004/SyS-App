@@ -1,0 +1,18 @@
+[12-Aug-2025 14:56:46 America/New_York] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user 'root'@'localhost' (using password: NO) in /home/wwsegu/public_html/SyS-app/cliente/models/conexion.php:7
+Stack trace:
+#0 /home/wwsegu/public_html/SyS-app/cliente/models/conexion.php(7): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'seguros_db')
+#1 /home/wwsegu/public_html/SyS-app/cliente/views/fragmento_clientes.php(2): include('/home/wwsegu/pu...')
+#2 {main}
+  thrown in /home/wwsegu/public_html/SyS-app/cliente/models/conexion.php on line 7
+[12-Aug-2025 15:29:13 America/New_York] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user 'root'@'localhost' (using password: NO) in /home/wwsegu/public_html/SyS-app/cliente/models/conexion.php:7
+Stack trace:
+#0 /home/wwsegu/public_html/SyS-app/cliente/models/conexion.php(7): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'seguros_db')
+#1 /home/wwsegu/public_html/SyS-app/cliente/views/fragmento_clientes.php(2): include('/home/wwsegu/pu...')
+#2 {main}
+  thrown in /home/wwsegu/public_html/SyS-app/cliente/models/conexion.php on line 7
+[12-Aug-2025 15:29:14 America/New_York] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user 'root'@'localhost' (using password: NO) in /home/wwsegu/public_html/SyS-app/cliente/models/conexion.php:7
+Stack trace:
+#0 /home/wwsegu/public_html/SyS-app/cliente/models/conexion.php(7): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'seguros_db')
+#1 /home/wwsegu/public_html/SyS-app/cliente/views/fragmento_clientes.php(2): include('/home/wwsegu/pu...')
+#2 {main}
+  thrown in /home/wwsegu/public_html/SyS-app/cliente/models/conexion.php on line 7

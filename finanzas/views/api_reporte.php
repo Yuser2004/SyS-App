@@ -31,13 +31,12 @@ $sql_total_egresos = "SELECT SUM(e.monto) AS total
                       WHERE r.estado = 'completado' AND e.fecha BETWEEN ? AND ? AND e.tipo = 'servicio'";
 if (!empty($sede_id)) $sql_total_egresos .= " AND a.id_sede = ?";
 $stmt_egresos = $conn->prepare($sql_total_egresos);
-// Los parámetros son los mismos que en ingresos
 $stmt_egresos->bind_param($types, ...$params);
 $stmt_egresos->execute();
 $total_egresos = $stmt_egresos->get_result()->fetch_assoc()['total'] ?? 0;
 $stmt_egresos->close();
 
-// La lógica de gastos fijos se elimina. Utilidad ahora es más simple.
+// Utilidad
 $utilidad_final = $total_ingresos - $total_egresos;
 
 // --- 2. DESGLOSE POR MÉTODO DE PAGO ---
@@ -45,7 +44,10 @@ $metodos_pago = ['efectivo', 'transferencia', 'tarjeta', 'otro'];
 $desglose_pagos = [];
 foreach ($metodos_pago as $metodo) {
     // Ingresos por método
-    $sql_ing_m = "SELECT SUM(r.valor_servicio) AS total FROM recibos r LEFT JOIN asesor a ON r.id_asesor = a.id_asesor WHERE r.estado = 'completado' AND r.metodo_pago = ? AND r.fecha_tramite BETWEEN ? AND ?";
+    $sql_ing_m = "SELECT SUM(r.valor_servicio) AS total 
+                  FROM recibos r 
+                  LEFT JOIN asesor a ON r.id_asesor = a.id_asesor 
+                  WHERE r.estado = 'completado' AND r.metodo_pago = ? AND r.fecha_tramite BETWEEN ? AND ?";
     if (!empty($sede_id)) $sql_ing_m .= " AND a.id_sede = ?";
     $stmt = $conn->prepare($sql_ing_m);
     $types_m = !empty($sede_id) ? "sssi" : "sss";
@@ -55,31 +57,41 @@ foreach ($metodos_pago as $metodo) {
     $ingresos_metodo = $stmt->get_result()->fetch_assoc()['total'] ?? 0;
     
     // Egresos por método
-    $sql_egr_m = "SELECT SUM(e.monto) AS total FROM egresos e JOIN recibos r ON e.recibo_id = r.id LEFT JOIN asesor a ON r.id_asesor = a.id_asesor WHERE r.estado = 'completado' AND e.forma_pago = ? AND e.fecha BETWEEN ? AND ? AND e.tipo = 'servicio'";
-
+    $sql_egr_m = "SELECT SUM(e.monto) AS total 
+                  FROM egresos e 
+                  JOIN recibos r ON e.recibo_id = r.id 
+                  LEFT JOIN asesor a ON r.id_asesor = a.id_asesor 
+                  WHERE r.estado = 'completado' AND e.forma_pago = ? AND e.fecha BETWEEN ? AND ? AND e.tipo = 'servicio'";
     if (!empty($sede_id)) $sql_egr_m .= " AND a.id_sede = ?";
     $stmt = $conn->prepare($sql_egr_m);
-    // Los parámetros son los mismos
     $stmt->bind_param($types_m, ...$params_m);
     $stmt->execute();
     $egresos_metodo = $stmt->get_result()->fetch_assoc()['total'] ?? 0;
     
     $desglose_pagos[$metodo] = [
         'ingresos' => $ingresos_metodo,
-        'salidas' => $egresos_metodo, // Salidas ahora es solo egresos
+        'salidas' => $egresos_metodo,
         'balance' => $ingresos_metodo - $egresos_metodo
     ];
     $stmt->close();
 }
 
-// --- 3. DESGLOSE DIARIO (simplificado sin gastos) ---
+// --- 3. DESGLOSE DIARIO (fechas forzadas con DATE()) ---
 $sql_detalle_diario_base = "
     SELECT fecha, SUM(ingreso) AS ingresos_diarios, SUM(egreso) AS egresos_diarios
     FROM (
-        SELECT r.fecha_tramite AS fecha, r.valor_servicio AS ingreso, 0 AS egreso FROM recibos r LEFT JOIN asesor a ON r.id_asesor = a.id_asesor WHERE r.estado = 'completado' AND r.fecha_tramite BETWEEN ? AND ? %s
-        UNION ALL
-        SELECT e.fecha, 0 AS ingreso, e.monto AS egreso FROM egresos e JOIN recibos r ON e.recibo_id = r.id LEFT JOIN asesor a ON r.id_asesor = a.id_asesor WHERE r.estado = 'completado' AND e.fecha BETWEEN ? AND ? AND e.tipo = 'servicio' %s
+        SELECT DATE(r.fecha_tramite) AS fecha, r.valor_servicio AS ingreso, 0 AS egreso 
+        FROM recibos r 
+        LEFT JOIN asesor a ON r.id_asesor = a.id_asesor 
+        WHERE r.estado = 'completado' AND r.fecha_tramite BETWEEN ? AND ? %s
 
+        UNION ALL
+
+        SELECT DATE(e.fecha) AS fecha, 0 AS ingreso, e.monto AS egreso 
+        FROM egresos e 
+        JOIN recibos r ON e.recibo_id = r.id 
+        LEFT JOIN asesor a ON r.id_asesor = a.id_asesor 
+        WHERE r.estado = 'completado' AND e.fecha BETWEEN ? AND ? AND e.tipo = 'servicio' %s
     ) AS transacciones
     GROUP BY fecha ORDER BY fecha DESC
 ";
@@ -100,12 +112,12 @@ $stmt_detalle->execute();
 $resultado_detalle = $stmt_detalle->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt_detalle->close();
 
-// --- 4. PREPARAR RESPUESTA JSON (simplificada) ---
+// --- 4. PREPARAR RESPUESTA JSON ---
 $respuesta = [
     'resumen' => [
         'total_ingresos' => $total_ingresos,
         'total_egresos' => $total_egresos,
-        'total_gastos' => 0, // Se envía 0 porque ya no se calcula
+        'total_gastos' => 0,
         'utilidad_final' => $utilidad_final,
     ],
     'desglose_pagos' => $desglose_pagos,
@@ -114,4 +126,3 @@ $respuesta = [
 
 echo json_encode($respuesta);
 exit();
-?>

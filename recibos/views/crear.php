@@ -114,7 +114,9 @@
                     <option class="opt-daviplata" value="BANCOLOMBIA ALBA">BANCOLOMBIA ALBA</option>
                     <option class="opt-davivienda" value="BANCOLOMBIA IPSA">BANCOLOMBIA IPSA</option>
                     <option class="opt-bancolombia" value="BANCOLOMBIA ANDREA">BANCOLOMBIA ANDREA</option>
+                    <option class="opt-daviplata" value="BANCOLOMBIA DANIELA">BANCOLOMBIA DANIELA</option>
                     <option class="opt-nequi" value="NEQUI">NEQUI</option>
+                    <option class="opt-davivienda" value="DAVIVIENDA LINA">DAVIVIENDA LINA</option>
                 </select>
             </div>
             <!-- Descripción -->

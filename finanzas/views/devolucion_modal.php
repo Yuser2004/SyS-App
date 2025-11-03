@@ -46,12 +46,13 @@ include __DIR__ . '/../models/conexion.php';
 
                     <div class="form-group mb-3">
                         <label for="metodo_pago">Método de Devolución</label>
-                        <select name="metodo_pago" class="form-control custom-input" required>
-                            <option value="">Seleccione...</option>
-                            <option value="efectivo">Efectivo</option>
-                            <option value="transferencia">Transferencia</option>
-                            <option value="otro">Otro</option>
-                        </select>
+                            <select name="metodo_pago" class="form-control custom-input" required>
+                                <option value="">Seleccione...</option>
+                                <option value="efectivo">Efectivo</option>
+                                <option value="transferencia">Transferencia</option>
+                                <option value="tarjeta">Tarjeta</option>
+                                <option value="otro">Otro</option>
+                            </select>
                     </div>
 
                     <div class="form-group mb-3">
@@ -73,3 +74,72 @@ include __DIR__ . '/../models/conexion.php';
         </div>
     </div>
 </div>
+<script>
+/*
+  Script que intercepta el submit del form del modal,
+  hace fetch() y espera JSON. Muestra alert, cierra modal,
+  resetea el form y refresca la vista de caja.
+  Ejecuta inmediatamente (no depende de DOMContentLoaded).
+*/
+(function() {
+    const modalForm = document.querySelector('#modalDevolucionPrestamo form');
+    if (!modalForm) return;
+
+    modalForm.addEventListener('submit', async function(event) {
+        event.preventDefault(); // IMPRESCINDIBLE: evita que el navegador navegue a la URL del action
+
+        const submitBtn = modalForm.querySelector('button[type="submit"]');
+        const originalText = submitBtn ? submitBtn.textContent : null;
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Guardando...';
+        }
+
+        try {
+            const resp = await fetch(modalForm.action, {
+                method: 'POST',
+                body: new FormData(modalForm),
+                credentials: 'same-origin'
+            });
+
+            // Intentamos parsear JSON (si no es JSON, entrará al catch)
+            const data = await resp.json();
+
+            if (resp.ok && data && data.status === 'ok') {
+                // Mostrar alert (estado)
+                alert(data.message || 'Devolución registrada correctamente.');
+
+                // Cerrar modal (Bootstrap 5)
+                const modalEl = document.getElementById('modalDevolucionPrestamo');
+                const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                modalInstance.hide();
+
+                // Limpiar formulario
+                modalForm.reset();
+
+                // Refrescar caja diaria:
+                // si existe la función actualizarCajaDiaria(), la llamamos;
+                // si no, usamos cargarContenido('finanzas/views/caja_diaria.php');
+                if (typeof actualizarCajaDiaria === 'function') {
+                    actualizarCajaDiaria();
+                } else if (typeof cargarContenido === 'function') {
+                    cargarContenido('finanzas/views/caja_diaria.php');
+                }
+
+            } else {
+                // Mostrar mensaje de error devuelto por PHP (o genérico)
+                const msg = (data && data.message) ? data.message : 'Error al guardar la devolución.';
+                alert(msg);
+            }
+        } catch (err) {
+            console.error('Error en fetch/save devolucion:', err);
+            alert('Error de red o servidor: ' + (err.message || err));
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        }
+    });
+})();
+</script>

@@ -1,0 +1,30 @@
+[22-Oct-2025 22:42:50 America/New_York] PHP Warning:  Undefined array key "id" in /home/wwsegu/public_html/SyS-app/sedes/views/editar_sede.php on line 4
+[22-Oct-2025 22:42:50 America/New_York] PHP Fatal error:  Uncaught mysqli_sql_exception: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '' at line 1 in /home/wwsegu/public_html/SyS-app/sedes/views/editar_sede.php:5
+Stack trace:
+#0 /home/wwsegu/public_html/SyS-app/sedes/views/editar_sede.php(5): mysqli->query('SELECT * FROM s...')
+#1 {main}
+  thrown in /home/wwsegu/public_html/SyS-app/sedes/views/editar_sede.php on line 5
+[22-Oct-2025 22:42:52 America/New_York] PHP Warning:  Undefined array key "id" in /home/wwsegu/public_html/SyS-app/sedes/views/editar_sede.php on line 4
+[22-Oct-2025 22:42:52 America/New_York] PHP Fatal error:  Uncaught mysqli_sql_exception: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '' at line 1 in /home/wwsegu/public_html/SyS-app/sedes/views/editar_sede.php:5
+Stack trace:
+#0 /home/wwsegu/public_html/SyS-app/sedes/views/editar_sede.php(5): mysqli->query('SELECT * FROM s...')
+#1 {main}
+  thrown in /home/wwsegu/public_html/SyS-app/sedes/views/editar_sede.php on line 5
+[22-Oct-2025 22:42:53 America/New_York] PHP Warning:  Undefined array key "id" in /home/wwsegu/public_html/SyS-app/sedes/views/editar_sede.php on line 4
+[22-Oct-2025 22:42:53 America/New_York] PHP Fatal error:  Uncaught mysqli_sql_exception: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '' at line 1 in /home/wwsegu/public_html/SyS-app/sedes/views/editar_sede.php:5
+Stack trace:
+#0 /home/wwsegu/public_html/SyS-app/sedes/views/editar_sede.php(5): mysqli->query('SELECT * FROM s...')
+#1 {main}
+  thrown in /home/wwsegu/public_html/SyS-app/sedes/views/editar_sede.php on line 5
+[22-Oct-2025 22:45:07 America/New_York] PHP Warning:  Undefined array key "id" in /home/wwsegu/public_html/SyS-app/sedes/views/editar_sede.php on line 4
+[22-Oct-2025 22:45:07 America/New_York] PHP Fatal error:  Uncaught mysqli_sql_exception: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '' at line 1 in /home/wwsegu/public_html/SyS-app/sedes/views/editar_sede.php:5
+Stack trace:
+#0 /home/wwsegu/public_html/SyS-app/sedes/views/editar_sede.php(5): mysqli->query('SELECT * FROM s...')
+#1 {main}
+  thrown in /home/wwsegu/public_html/SyS-app/sedes/views/editar_sede.php on line 5
+[22-Oct-2025 22:54:18 America/New_York] PHP Warning:  Undefined array key "id" in /home/wwsegu/public_html/SyS-app/sedes/views/editar_sede.php on line 4
+[22-Oct-2025 22:54:18 America/New_York] PHP Fatal error:  Uncaught mysqli_sql_exception: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '' at line 1 in /home/wwsegu/public_html/SyS-app/sedes/views/editar_sede.php:5
+Stack trace:
+#0 /home/wwsegu/public_html/SyS-app/sedes/views/editar_sede.php(5): mysqli->query('SELECT * FROM s...')
+#1 {main}
+  thrown in /home/wwsegu/public_html/SyS-app/sedes/views/editar_sede.php on line 5

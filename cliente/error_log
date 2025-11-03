@@ -1,0 +1,70 @@
+[12-Sep-2025 10:12:26 America/New_York] PHP Warning:  Undefined array key "documento" in /home/wwsegu/public_html/SyS-app/cliente/verificar_documento.php on line 4
+[12-Sep-2025 10:12:26 America/New_York] PHP Warning:  Undefined array key "documento" in /home/wwsegu/public_html/SyS-app/cliente/verificar_documento.php on line 4
+[12-Sep-2025 10:12:26 America/New_York] PHP Warning:  Undefined array key "documento" in /home/wwsegu/public_html/SyS-app/cliente/verificar_documento.php on line 4
+[12-Sep-2025 10:22:38 America/New_York] PHP Warning:  Undefined array key "documento" in /home/wwsegu/public_html/SyS-app/cliente/verificar_documento.php on line 4
+[12-Sep-2025 10:32:29 America/New_York] PHP Warning:  Undefined array key "documento" in /home/wwsegu/public_html/SyS-app/cliente/verificar_documento.php on line 4
+[22-Oct-2025 22:42:45 America/New_York] PHP Warning:  Undefined array key "id_cliente" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 3
+[22-Oct-2025 22:42:45 America/New_York] PHP Warning:  Undefined array key "nombre_completo" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 4
+[22-Oct-2025 22:42:45 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 4
+[22-Oct-2025 22:42:45 America/New_York] PHP Warning:  Undefined array key "documento" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 5
+[22-Oct-2025 22:42:45 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 5
+[22-Oct-2025 22:42:45 America/New_York] PHP Warning:  Undefined array key "telefono" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 6
+[22-Oct-2025 22:42:45 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 6
+[22-Oct-2025 22:42:45 America/New_York] PHP Warning:  Undefined array key "ciudad" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 7
+[22-Oct-2025 22:42:45 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 7
+[22-Oct-2025 22:42:45 America/New_York] PHP Warning:  Undefined array key "direccion" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 8
+[22-Oct-2025 22:42:45 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 8
+[22-Oct-2025 22:42:45 America/New_York] PHP Warning:  Undefined array key "observaciones" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 9
+[22-Oct-2025 22:42:45 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 9
+[22-Oct-2025 22:42:45 America/New_York] PHP Warning:  Undefined array key "id_cliente" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 3
+[22-Oct-2025 22:42:45 America/New_York] PHP Warning:  Undefined array key "nombre_completo" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 4
+[22-Oct-2025 22:42:45 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 4
+[22-Oct-2025 22:42:45 America/New_York] PHP Warning:  Undefined array key "documento" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 5
+[22-Oct-2025 22:42:45 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 5
+[22-Oct-2025 22:42:45 America/New_York] PHP Warning:  Undefined array key "telefono" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 6
+[22-Oct-2025 22:42:45 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 6
+[22-Oct-2025 22:42:45 America/New_York] PHP Warning:  Undefined array key "ciudad" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 7
+[22-Oct-2025 22:42:45 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 7
+[22-Oct-2025 22:42:45 America/New_York] PHP Warning:  Undefined array key "direccion" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 8
+[22-Oct-2025 22:42:45 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 8
+[22-Oct-2025 22:42:45 America/New_York] PHP Warning:  Undefined array key "observaciones" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 9
+[22-Oct-2025 22:42:45 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 9
+[22-Oct-2025 22:42:46 America/New_York] PHP Warning:  Undefined array key "id_cliente" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 3
+[22-Oct-2025 22:42:46 America/New_York] PHP Warning:  Undefined array key "nombre_completo" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 4
+[22-Oct-2025 22:42:46 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 4
+[22-Oct-2025 22:42:46 America/New_York] PHP Warning:  Undefined array key "documento" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 5
+[22-Oct-2025 22:42:46 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 5
+[22-Oct-2025 22:42:46 America/New_York] PHP Warning:  Undefined array key "telefono" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 6
+[22-Oct-2025 22:42:46 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 6
+[22-Oct-2025 22:42:46 America/New_York] PHP Warning:  Undefined array key "ciudad" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 7
+[22-Oct-2025 22:42:46 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 7
+[22-Oct-2025 22:42:46 America/New_York] PHP Warning:  Undefined array key "direccion" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 8
+[22-Oct-2025 22:42:46 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 8
+[22-Oct-2025 22:42:46 America/New_York] PHP Warning:  Undefined array key "observaciones" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 9
+[22-Oct-2025 22:42:46 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 9
+[22-Oct-2025 22:52:22 America/New_York] PHP Warning:  Undefined array key "id_cliente" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 3
+[22-Oct-2025 22:52:22 America/New_York] PHP Warning:  Undefined array key "nombre_completo" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 4
+[22-Oct-2025 22:52:22 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 4
+[22-Oct-2025 22:52:22 America/New_York] PHP Warning:  Undefined array key "documento" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 5
+[22-Oct-2025 22:52:22 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 5
+[22-Oct-2025 22:52:22 America/New_York] PHP Warning:  Undefined array key "telefono" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 6
+[22-Oct-2025 22:52:22 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 6
+[22-Oct-2025 22:52:22 America/New_York] PHP Warning:  Undefined array key "ciudad" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 7
+[22-Oct-2025 22:52:22 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 7
+[22-Oct-2025 22:52:22 America/New_York] PHP Warning:  Undefined array key "direccion" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 8
+[22-Oct-2025 22:52:22 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 8
+[22-Oct-2025 22:52:22 America/New_York] PHP Warning:  Undefined array key "observaciones" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 9
+[22-Oct-2025 22:52:22 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 9
+[22-Oct-2025 22:59:51 America/New_York] PHP Warning:  Undefined array key "id_cliente" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 3
+[22-Oct-2025 22:59:51 America/New_York] PHP Warning:  Undefined array key "nombre_completo" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 4
+[22-Oct-2025 22:59:51 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 4
+[22-Oct-2025 22:59:51 America/New_York] PHP Warning:  Undefined array key "documento" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 5
+[22-Oct-2025 22:59:51 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 5
+[22-Oct-2025 22:59:51 America/New_York] PHP Warning:  Undefined array key "telefono" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 6
+[22-Oct-2025 22:59:51 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 6
+[22-Oct-2025 22:59:51 America/New_York] PHP Warning:  Undefined array key "ciudad" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 7
+[22-Oct-2025 22:59:51 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 7
+[22-Oct-2025 22:59:51 America/New_York] PHP Warning:  Undefined array key "direccion" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 8
+[22-Oct-2025 22:59:51 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 8
+[22-Oct-2025 22:59:51 America/New_York] PHP Warning:  Undefined array key "observaciones" in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 9
+[22-Oct-2025 22:59:51 America/New_York] PHP Deprecated:  trim(): Passing null to parameter #1 ($string) of type string is deprecated in /home/wwsegu/public_html/SyS-app/cliente/actualizar.php on line 9

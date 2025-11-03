@@ -1,5 +1,15 @@
+
+
 <?php
 include __DIR__ . '/models/conexion.php';
+
+
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+
 
 $id_cliente = $_POST['id_cliente'] ?? null;
 $id_asesor = $_POST['id_asesor'] ?? null;
@@ -10,23 +20,23 @@ $estado = $_POST['estado'] ?? null;
 $descripcion_servicio = $_POST['descripcion_servicio'] ?? null;
 $metodo_pago = $_POST['metodo_pago'] ?? null;
 $detalle_pago = $_POST['detalle_pago'] ?? null; // <-- 1. SE RECIBE LA NUEVA VARIABLE
+$fecha_tramite = date('Y-m-d'); // fecha actual en formato YYYY-MM-DD
 
 // Convertir valores vacíos a null si es necesario
 $id_asesor = $id_asesor === '' ? null : $id_asesor;
 // Si el detalle_pago está vacío, guardarlo como NULL
 $detalle_pago = $detalle_pago === '' ? null : $detalle_pago;
 
-// Se añade la columna 'detalle_pago' a la consulta
 $sql = "INSERT INTO recibos 
-(id_cliente, id_asesor, id_vehiculo, concepto_servicio, valor_servicio, estado, descripcion_servicio, metodo_pago, detalle_pago)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"; // <-- 2. SE AÑADE UN NUEVO '?'
+(id_cliente, id_asesor, id_vehiculo, concepto_servicio, valor_servicio, estado, descripcion_servicio, metodo_pago, detalle_pago, fecha_tramite)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 $stmt = $conn->prepare($sql);
 
 if ($stmt) {
     // Se actualizan los tipos y se añade la nueva variable
     $stmt->bind_param(
-        "iiissssss", // <-- 3. SE AÑADE UNA 's' EXTRA (9 PARÁMETROS)
+        "iiisssssss",
         $id_cliente,
         $id_asesor,
         $id_vehiculo,
@@ -35,7 +45,9 @@ if ($stmt) {
         $estado,
         $descripcion_servicio,
         $metodo_pago,
-        $detalle_pago // <-- SE AÑADE LA VARIABLE AL FINAL
+        $detalle_pago, 
+        $fecha_tramite  // la fecha acá
+
     );
 
     if ($stmt->execute()) {

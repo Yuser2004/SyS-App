@@ -1,0 +1,48 @@
+[12-Aug-2025 14:56:05 America/New_York] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user 'root'@'localhost' (using password: NO) in /home/wwsegu/public_html/SyS-app/recibos/models/conexion.php:7
+Stack trace:
+#0 /home/wwsegu/public_html/SyS-app/recibos/models/conexion.php(7): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'seguros_db')
+#1 /home/wwsegu/public_html/SyS-app/recibos/views/lista.php(2): include('/home/wwsegu/pu...')
+#2 {main}
+  thrown in /home/wwsegu/public_html/SyS-app/recibos/models/conexion.php on line 7
+[12-Aug-2025 14:56:38 America/New_York] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user 'root'@'localhost' (using password: NO) in /home/wwsegu/public_html/SyS-app/recibos/models/conexion.php:7
+Stack trace:
+#0 /home/wwsegu/public_html/SyS-app/recibos/models/conexion.php(7): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'seguros_db')
+#1 /home/wwsegu/public_html/SyS-app/recibos/views/lista.php(2): include('/home/wwsegu/pu...')
+#2 {main}
+  thrown in /home/wwsegu/public_html/SyS-app/recibos/models/conexion.php on line 7
+[12-Aug-2025 14:56:47 America/New_York] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user 'root'@'localhost' (using password: NO) in /home/wwsegu/public_html/SyS-app/recibos/models/conexion.php:7
+Stack trace:
+#0 /home/wwsegu/public_html/SyS-app/recibos/models/conexion.php(7): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'seguros_db')
+#1 /home/wwsegu/public_html/SyS-app/recibos/views/lista.php(2): include('/home/wwsegu/pu...')
+#2 {main}
+  thrown in /home/wwsegu/public_html/SyS-app/recibos/models/conexion.php on line 7
+[12-Aug-2025 14:56:58 America/New_York] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user 'root'@'localhost' (using password: NO) in /home/wwsegu/public_html/SyS-app/recibos/models/conexion.php:7
+Stack trace:
+#0 /home/wwsegu/public_html/SyS-app/recibos/models/conexion.php(7): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'seguros_db')
+#1 /home/wwsegu/public_html/SyS-app/recibos/views/lista.php(2): include('/home/wwsegu/pu...')
+#2 {main}
+  thrown in /home/wwsegu/public_html/SyS-app/recibos/models/conexion.php on line 7
+[12-Aug-2025 14:57:21 America/New_York] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user 'root'@'localhost' (using password: NO) in /home/wwsegu/public_html/SyS-app/recibos/models/conexion.php:7
+Stack trace:
+#0 /home/wwsegu/public_html/SyS-app/recibos/models/conexion.php(7): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'seguros_db')
+#1 /home/wwsegu/public_html/SyS-app/recibos/views/lista.php(2): include('/home/wwsegu/pu...')
+#2 {main}
+  thrown in /home/wwsegu/public_html/SyS-app/recibos/models/conexion.php on line 7
+[12-Aug-2025 14:58:17 America/New_York] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user 'root'@'localhost' (using password: NO) in /home/wwsegu/public_html/SyS-app/recibos/models/conexion.php:7
+Stack trace:
+#0 /home/wwsegu/public_html/SyS-app/recibos/models/conexion.php(7): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'seguros_db')
+#1 /home/wwsegu/public_html/SyS-app/recibos/views/lista.php(2): include('/home/wwsegu/pu...')
+#2 {main}
+  thrown in /home/wwsegu/public_html/SyS-app/recibos/models/conexion.php on line 7
+[12-Aug-2025 15:04:25 America/New_York] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user 'root'@'localhost' (using password: YES) in /home/wwsegu/public_html/SyS-app/recibos/models/conexion.php:7
+Stack trace:
+#0 /home/wwsegu/public_html/SyS-app/recibos/models/conexion.php(7): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'seguros_db')
+#1 /home/wwsegu/public_html/SyS-app/recibos/views/lista.php(2): include('/home/wwsegu/pu...')
+#2 {main}
+  thrown in /home/wwsegu/public_html/SyS-app/recibos/models/conexion.php on line 7
+[12-Aug-2025 15:04:39 America/New_York] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user 'root'@'localhost' (using password: YES) in /home/wwsegu/public_html/SyS-app/recibos/models/conexion.php:7
+Stack trace:
+#0 /home/wwsegu/public_html/SyS-app/recibos/models/conexion.php(7): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'seguros_db')
+#1 /home/wwsegu/public_html/SyS-app/recibos/views/lista.php(2): include('/home/wwsegu/pu...')
+#2 {main}
+  thrown in /home/wwsegu/public_html/SyS-app/recibos/models/conexion.php on line 7

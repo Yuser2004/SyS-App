@@ -1,6 +1,10 @@
 <?php
-
+require __DIR__ . '/../vendor/autoload.php';
 include __DIR__ . '/models/conexion.php';
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 // 1. Obtener los filtros desde la URL (GET)
 $estado = $_GET['estado'] ?? '';
@@ -9,7 +13,7 @@ $fechaHasta = $_GET['fechaHasta'] ?? '';
 $busqueda = $_GET['busqueda'] ?? '';
 
 // ==========================================================
-// ESTA ES LA PARTE QUE FALTABA
+// Consulta SQL
 // ==========================================================
 $sql = "
     SELECT 
@@ -22,21 +26,21 @@ $sql = "
         r.valor_servicio, 
         r.estado, 
         r.metodo_pago,
-        (SELECT SUM(e.monto) FROM egresos e WHERE e.recibo_id = r.id) AS valor_total_egresos
+        (
+            SELECT COALESCE(SUM(e.monto), 0)
+            FROM egresos e
+            WHERE e.recibo_id = r.id
+              AND e.tipo = 'servicio' 
+        ) AS valor_total_egresos
     FROM recibos r
     LEFT JOIN clientes c ON r.id_cliente = c.id_cliente
     LEFT JOIN vehiculo v ON r.id_vehiculo = v.id_vehiculo
     LEFT JOIN asesor a ON r.id_asesor = a.id_asesor
 ";
-// ==========================================================
-
-
-// El código que construye el WHERE se mantiene igual
 $where = [];
 $params = [];
 $types = '';
 
-// ... (el resto de tu código para construir el WHERE está perfecto) ...
 if (!empty($estado)) {
     $where[] = "r.estado = ?";
     $params[] = $estado;
@@ -61,16 +65,12 @@ if (!empty($busqueda)) {
     $types .= 'sss';
 }
 
-
 if (!empty($where)) {
     $sql .= " WHERE " . implode(" AND ", $where);
 }
 
-// Ya no se necesita el GROUP BY
 $sql .= " ORDER BY r.id DESC";
 
-
-// El resto del script para ejecutar la consulta y generar el CSV está perfecto.
 $stmt = $conn->prepare($sql);
 if (!empty($types)) {
     $stmt->bind_param($types, ...$params);
@@ -78,38 +78,59 @@ if (!empty($types)) {
 $stmt->execute();
 $resultado = $stmt->get_result();
 
-// 3. Generar el archivo CSV
-$nombreArchivo = 'reporte_recibos_' . date('Y-m-d') . '.csv';
+// ==========================================================
+// Crear el Excel
+// ==========================================================
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
 
-header('Content-Type: text/csv; charset=utf-8');
-header('Content-Disposition: attachment; filename=' . $nombreArchivo);
-
-$output = fopen('php://output', 'w');
-
-// Escribir la fila de encabezados
-fputcsv($output, [
+// Encabezados
+$headers = [
     'ID Recibo', 'Fecha', 'Cliente', 'Placa', 'Concepto', 
-    'Asesor', 'Valor Servicio', 'Estado', 'Metodo de Pago', 'Valor Total Egresos'
-]);
+    'Asesor', 'Valor Servicio', 'Estado', 'M�todo de Pago', 'Valor Total Egresos'
+];
+$sheet->fromArray($headers, null, 'A1');
 
-// Escribir los datos
-if ($resultado->num_rows > 0) {
-    while ($fila = $resultado->fetch_assoc()) {
-        fputcsv($output, [
-            $fila['id'],
-            $fila['fecha_tramite'],
-            $fila['cliente'],
-            $fila['placa'],
-            $fila['concepto'],
-            $fila['asesor'],
-            $fila['valor_servicio'],
-            $fila['estado'],
-            $fila['metodo_pago'],
-            $fila['valor_total_egresos'] ?? 0
-        ]);
-    }
+// Aplicar estilo al encabezado
+$sheet->getStyle('A1:J1')->getFill()
+    ->setFillType(Fill::FILL_SOLID)
+    ->getStartColor()->setRGB('DCE6F1'); // azul suave
+
+$sheet->getStyle('A1:J1')->getFont()->setBold(true);
+
+// Escribir datos
+$filaExcel = 2;
+while ($fila = $resultado->fetch_assoc()) {
+    // Calcular ganancia neta
+    $sheet->fromArray([
+        $fila['id'],
+        $fila['fecha_tramite'],
+        $fila['cliente'],
+        $fila['placa'],
+        $fila['concepto'],
+        $fila['asesor'],
+        $fila['valor_servicio'],
+        $fila['estado'],
+        $fila['metodo_pago'],
+        $fila['valor_total_egresos'] ?? 0
+    ], null, "A{$filaExcel}");
+    $filaExcel++;
 }
 
-fclose($output);
+// Ajustar ancho autom�tico
+foreach (range('A', 'J') as $col) {
+    $sheet->getColumnDimension($col)->setAutoSize(true);
+}
+
+// ==========================================================
+// Salida del archivo Excel
+// ==========================================================
+$nombreArchivo = 'reporte_recibos_' . date('Y-m-d') . '.xlsx';
+header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+header("Content-Disposition: attachment; filename=\"$nombreArchivo\"");
+header('Cache-Control: max-age=0');
+
+$writer = new Xlsx($spreadsheet);
+$writer->save('php://output');
 exit();
 ?>

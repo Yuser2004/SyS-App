@@ -18,7 +18,7 @@
             .caja-diaria { font-family: 'Segoe UI', sans-serif; padding: 20px; max-width: 900px; margin: auto; }
             .caja-header, .caja-resumen, .caja-cierre { padding: 20px; border: 2px solid #ccc; border-radius: 8px; margin-bottom: 20px; background-color: #f9f9f9b6; }
             .filtros { display: flex; gap: 20px; align-items: center; margin-bottom: 20px; }
-    .resumen-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }        .resumen-columna h4 { border-bottom: 2px solid #eee; padding-bottom: 10px; }
+            .resumen-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }        .resumen-columna h4 { border-bottom: 2px solid #eee; padding-bottom: 10px; }
             .resumen-linea { display: flex; justify-content: space-between; padding: 5px 0; }
             .total { font-weight: bold; border-top: 1px solid #ccc; padding-top: 10px; margin-top: 10px; }
             .ingreso-monto { color: #28a745; }
@@ -86,7 +86,7 @@
             <label for="fecha"><b>Fecha:</b></label>    
             <input type="date" id="fecha" name="fecha" value="<?= htmlspecialchars($fecha_seleccionada) ?>">
             
-            <label for="id_sede"><b>Sede:</b></label>
+            <label for="id_sede "><b>Sede:</b></label>
             <select id="id_sede" name="id_sede">
                 <?php while($sede = $sedes_result->fetch_assoc()): ?>
                     <option value="<?= $sede['id'] ?>" <?= ($id_sede_seleccionada == $sede['id']) ? 'selected' : '' ?>>
@@ -102,9 +102,24 @@
         <div class="caja-resumen">
             <h3 style="text-align:center;">Movimientos del Día: <span id="titulo-fecha"></span></h3>
             <div class="resumen-linea total">
-                <span>SALDO DE APERTURA (Día Anterior)</span>
+                <span>SALDO DE APERTURA (Ultimo Cierre)</span>
                 <span id="saldo-apertura">$0</span>
             </div>
+
+            <div class="resumen-linea">
+                <span>Apertura en Efectivo:</span>
+                <span class="neutro-monto" id="apertura-efectivo">$0</span>
+            </div>
+            <div class="resumen-linea">
+                <span>Apertura en Transferencia:</span>
+                <span class="neutro-monto" id="apertura-transferencia">$0</span>
+            </div>
+            <div class="resumen-linea">
+                <span>Apertura en Tarjeta:</span>
+                <span class="neutro-monto" id="apertura-tarjeta">$0</span>
+            </div>
+            <hr>
+
             <hr>
             <div class="resumen-grid">
                 <div class="resumen-columna">
@@ -121,7 +136,15 @@
                     <div class="resumen-linea"><span>Tarjeta:</span> <span class="salida-monto" id="egresos-tarjeta">-$0</span></div>
                     <div class="resumen-linea total"><span>Total Egresos:</span> <span class="salida-monto" id="total-egresos">-$0</span></div>
                 </div>
+                <div class="resumen-columna">
+                    <h4>Balance</h4>
+                    <div class="resumen-linea"><span>Efectivo:</span> <span class="balance-monto" id="balance-efectivo">$0</span></div>
+                    <div class="resumen-linea"><span>Transferencia:</span> <span class="balance-monto" id="balance-transferencia">$0</span></div>
+                    <div class="resumen-linea"><span>Tarjeta:</span> <span class="balance-monto" id="balance-tarjeta">$0</span></div>
+                    <div class="resumen-linea total"><span>Total Balance:</span> <span class="balance-monto" id="total-balance">$0</span></div>
+                </div>
             </div>
+
             <hr>
             <hr>
 <!-- CÓDIGO NUEVO CON BOTÓN -->
@@ -154,15 +177,13 @@
             </div>
             <div class="resumen-linea total" style="font-size: 1.2em;">
                 <span>SALDO FINAL ESPERADO EN CAJA</span>
-                <span id="saldo-final">$0</span><!-- AQUI, DEBES DE HACER QUE SE REFLEJE LAS DEVOLUCIONES DE LAS OTRAS SEDES YA QUE ESTARAN EN LA CAJA. -->
-            </div>
-        </div>
-        
+                <span id="saldo-final">$0</span>
+            </div>        
         <div class="caja-cierre" id="seccion-cierre">
-            </div>
+            /div>
     </div>
 <script>
-(function() { // "Burbuja" para evitar conflictos
+(function() {
     const fechaInput = document.getElementById('fecha');
     const sedeInput = document.getElementById('id_sede');
     const seccionCierre = document.getElementById('seccion-cierre');
@@ -180,83 +201,128 @@
             if (!response.ok) throw new Error('No se pudo conectar con la API');
             const data = await response.json();
 
-            // Hacemos el código más seguro, proveyendo valores por defecto si algo no llega desde la API
-            const ingresos = data.ingresos || { total: 0, desglose: { efectivo: 0, transferencia: 0, tarjeta: 0, otro: 0 } };
-            const egresos = data.egresos || { total: 0, desglose: { efectivo: 0, transferencia: 0, tarjeta: 0, otro: 0 } };
-            const devolucionesRecibidas = data.devoluciones_recibidas ||{ total: 0, desglose: { efectivo: 0, transferencia: 0, tarjeta: 0, otro: 0 } }; 
-            const devolucionesEnviadas = data.devoluciones_enviadas ||{ total: 0, desglose: { efectivo: 0, transferencia: 0, tarjeta: 0, otro: 0 } }; 
-            const prestamosEnviados = data.prestamos_enviados || { total: 0, desglose: { efectivo: 0, transferencia: 0, tarjeta: 0, otro: 0 } };
+            // Valores por defecto para prevenir errores si la API no devuelve algo
+            const ingresos = data.ingresos?.desglose || { efectivo: 0, transferencia: 0, tarjeta: 0, otro: 0 };
+            const egresos = data.egresos?.desglose || { efectivo: 0, transferencia: 0, tarjeta: 0, otro: 0 };
+            const prestamosEnviados = data.prestamos_enviados?.desglose || { efectivo: 0, transferencia: 0, tarjeta: 0, otro: 0 };
+            const prestamosRecibidos = data.prestamos_recibidos?.desglose || { efectivo: 0, transferencia: 0, tarjeta: 0, otro: 0 };
+            const devolucionesRecibidas = data.devoluciones_recibidas?.desglose || { efectivo: 0, transferencia: 0, tarjeta: 0, otro: 0 };
+            const devolucionesEnviadas = data.devoluciones_enviadas?.desglose || { efectivo: 0, transferencia: 0, tarjeta: 0, otro: 0 };
+            const saldoApertura = data.saldo_apertura?.desglose || { efectivo: 0, transferencia: 0 };
 
-            // Actualizar Título y Saldo Apertura
+            // --- ACTUALIZAR RESUMEN GENERAL ---
             document.getElementById('titulo-fecha').textContent = new Date(fecha + 'T00:00:00').toLocaleDateString('es-CO');
-            document.getElementById('saldo-apertura').textContent = formatoMoneda(data.saldo_apertura);
+            
+            // Saldos de Apertura (corregido)
+            document.getElementById('saldo-apertura').textContent = formatoMoneda(data.saldo_apertura.total || 0);
+            document.getElementById('apertura-efectivo').textContent = formatoMoneda(saldoApertura.efectivo);
+            document.getElementById('apertura-transferencia').textContent = formatoMoneda(saldoApertura.transferencia);
 
-            // Actualizar Ingresos
-            document.getElementById('total-ingresos').textContent = formatoMoneda(ingresos.total);
-            document.getElementById('ingresos-efectivo').textContent = formatoMoneda(ingresos.desglose.efectivo);
-            document.getElementById('ingresos-transferencia').textContent = formatoMoneda(ingresos.desglose.transferencia);
-            document.getElementById('ingresos-tarjeta').textContent = formatoMoneda(ingresos.desglose.tarjeta);
+            // Ingresos
+            document.getElementById('total-ingresos').textContent = formatoMoneda(data.ingresos.total || 0);
+            document.getElementById('ingresos-efectivo').textContent = formatoMoneda(ingresos.efectivo);
+            document.getElementById('ingresos-transferencia').textContent = formatoMoneda(ingresos.transferencia);
+            document.getElementById('ingresos-tarjeta').textContent = formatoMoneda(ingresos.tarjeta);
 
-            // Actualizar Egresos
-            document.getElementById('total-egresos').textContent = '-' + formatoMoneda(egresos.total);
-            document.getElementById('egresos-efectivo').textContent = '-' + formatoMoneda(egresos.desglose.efectivo);
-            document.getElementById('egresos-transferencia').textContent = '-' + formatoMoneda(egresos.desglose.transferencia);
-            document.getElementById('egresos-tarjeta').textContent = '-' + formatoMoneda(egresos.desglose.tarjeta);
+            // Egresos
+            document.getElementById('total-egresos').textContent = '-' + formatoMoneda(data.egresos.total || 0);
+            document.getElementById('egresos-efectivo').textContent = '-' + formatoMoneda(egresos.efectivo);
+            document.getElementById('egresos-transferencia').textContent = '-' + formatoMoneda(egresos.transferencia);
+            document.getElementById('egresos-tarjeta').textContent = '-' + formatoMoneda(egresos.tarjeta);
 
-            // Actualizar Movimientos no Operativos
-            document.getElementById('total-devoluciones').textContent = formatoMoneda(devolucionesRecibidas.total);
-            document.getElementById('prestamos-enviados').textContent = '-' + formatoMoneda(prestamosEnviados.total);
-            document.getElementById('total-devoluciones-enviadas').textContent = '-' + formatoMoneda(devolucionesEnviadas.total);
-            document.getElementById('prestamos-enviados').textContent = '-' + formatoMoneda(prestamosEnviados.total);
+            // Balance Operativo (Ingresos - Egresos)
+            const balanceOperativoEfectivo = ingresos.efectivo - egresos.efectivo;
+            const balanceOperativoTransferencia = ingresos.transferencia - egresos.transferencia;
+            const balanceOperativoTarjeta = ingresos.tarjeta - egresos.tarjeta;
+            const totalBalanceOperativo = data.ingresos.total - data.egresos.total;
+            
+            document.getElementById('balance-efectivo').textContent = formatoMoneda(balanceOperativoEfectivo);
+            document.getElementById('balance-transferencia').textContent = formatoMoneda(balanceOperativoTransferencia);
+            document.getElementById('balance-tarjeta').textContent = formatoMoneda(balanceOperativoTarjeta);
+            document.getElementById('total-balance').textContent = formatoMoneda(totalBalanceOperativo);
 
-            // Actualizar Balances Finales
+            document.getElementById('balance-efectivo').className = balanceOperativoEfectivo >= 0 ? 'balance-positivo' : 'balance-negativo';
+            document.getElementById('balance-transferencia').className = balanceOperativoTransferencia >= 0 ? 'balance-positivo' : 'balance-negativo';
+            document.getElementById('balance-tarjeta').className = balanceOperativoTarjeta >= 0 ? 'balance-positivo' : 'balance-negativo';
+            document.getElementById('total-balance').className = totalBalanceOperativo >= 0 ? 'balance-positivo' : 'balance-negativo';
+            
+            // Movimientos no Operativos (corregido)
+            document.getElementById('total-prestamos-recibidos').textContent = formatoMoneda(data.prestamos_recibidos.total || 0);
+            document.getElementById('total-devoluciones').textContent = formatoMoneda(data.devoluciones_recibidas.total || 0);
+            document.getElementById('prestamos-enviados').textContent = '-' + formatoMoneda(data.prestamos_enviados.total || 0);
+            document.getElementById('total-devoluciones-enviadas').textContent = '-' + formatoMoneda(data.devoluciones_enviadas.total || 0);
+
+            // Saldos finales (corregido)
             const balanceDiaEl = document.getElementById('balance-dia');
-            balanceDiaEl.textContent = formatoMoneda(data.balance_dia);
-            balanceDiaEl.className = data.balance_dia >= 0 ? 'balance-positivo' : 'balance-negativo';
+            balanceDiaEl.textContent = formatoMoneda(data.balance_dia.total || 0);
+            balanceDiaEl.className = data.balance_dia.total >= 0 ? 'balance-positivo' : 'balance-negativo';
 
             const saldoFinalEl = document.getElementById('saldo-final');
-            saldoFinalEl.textContent = formatoMoneda(data.saldo_final_esperado);
-            saldoFinalEl.className = data.saldo_final_esperado >= 0 ? 'balance-positivo' : 'balance-negativo';
+            saldoFinalEl.textContent = formatoMoneda(data.saldo_final_esperado.total || 0);
+            saldoFinalEl.className = data.saldo_final_esperado.total >= 0 ? 'balance-positivo' : 'balance-negativo';
 
-            // --- ACTUALIZAR SECCIÓN DE CIERRE (CON LÓGICA FINAL) ---
+            // --- ACTUALIZAR SECCIÓN DE CIERRE ---
             if (data.cierre_info) {
+                const conteoRegistrado = 
+                    (parseFloat(data.cierre_info.saldo_cierre_efectivo || 0) + 
+                    parseFloat(data.cierre_info.saldo_cierre_transferencia || 0));
+
                 seccionCierre.innerHTML = `
                     <h3 style="text-align:center;">Caja Cerrada</h3>
-                    <div class="resumen-linea">
-                        <span>Conteo Físico Registrado:</span>
-                        <strong>${formatoMoneda(data.cierre_info.conteo_efectivo_cierre)}</strong>
-                    </div>
-                    <div class="resumen-linea">
-                        <span>Diferencia de Caja:</span>
-                        <strong class="${data.cierre_info.diferencia >= 0 ? 'ingreso-monto' : 'salida-monto'}">${formatoMoneda(data.cierre_info.diferencia)}</strong>
-                    </div>
-                    <div style="margin-top: 15px;">
-                        <strong>Notas del Cierre:</strong>
-                        <div style="background: #fff; border: 1px solid #ddd; padding: 10px; border-radius: 5px; margin-top: 5px; white-space: pre-wrap;">${data.cierre_info.notas || '<em>Sin notas.</em>'}</div>
+                    <div class="caja-cerrada-msg">
+                        <p><strong>Cierre del día ${new Date(data.cierre_info.fecha + 'T00:00:00').toLocaleDateString('es-CO')}:</strong></p>
+                        <div class="resumen-linea">
+                            <span>Saldo Esperado:</span>
+                            <strong>${formatoMoneda(data.cierre_info.saldo_final)}</strong>
+                        </div>
+                        <div class="resumen-linea">
+                            <span>Conteo Registrado:</span>
+                            <strong>${formatoMoneda(conteoRegistrado)}</strong>
+                        </div>
+                        <div class="resumen-linea">
+                            <span>Diferencia de Caja:</span>
+                            <strong class="${data.cierre_info.diferencia >= 0 ? 'ingreso-monto' : 'salida-monto'}">
+                                ${formatoMoneda(data.cierre_info.diferencia)}
+                            </strong>
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <strong>Notas del Cierre:</strong>
+                            <div style="background: #fff; border: 1px solid #ddd; padding: 10px; border-radius: 5px; margin-top: 5px; white-space: pre-wrap;">
+                                ${data.cierre_info.notas || '<em>Sin notas.</em>'}
+                            </div>
+                        </div>
                     </div>
                 `;
-            } else if (data.se_puede_cerrar && data.hubo_movimientos_hoy) {
+            }
+             else if (data.se_puede_cerrar && data.hubo_movimientos_hoy) {
                 seccionCierre.innerHTML = `
                     <h3 style="text-align:center;">Realizar Cierre de Caja</h3>
                     <p style="text-align:center; font-size: 14px;">Al cerrar la caja, se guardará un registro permanente.</p>
                     <form class="cierre-form" method="POST" action="finanzas/views/guardar_cierre.php">
                         <input type="hidden" name="id_sede" value="${idSede}">
                         <input type="hidden" name="fecha_cierre" value="${fecha}">
-                        <input type="hidden" name="saldo_apertura" value="${data.saldo_apertura}">
-                        <input type="hidden" name="total_ingresos" value="${ingresos.total}">
-                        <input type="hidden" name="total_egresos" value="${egresos.total}">
-                        <input type="hidden" name="balance_dia" value="${data.balance_dia}">
-                        <input type="hidden" name="saldo_final" value="${data.saldo_final_esperado}">
-                        <input type="hidden" name="ingresos_efectivo" value="${ingresos.desglose.efectivo}">
-                        <input type="hidden" name="egresos_efectivo" value="${egresos.desglose.efectivo}">
-                        <input type="hidden" name="prestamos_enviados_efectivo" value="${prestamosEnviados.desglose.efectivo}">
-                        
-                        <input type="hidden" name="devoluciones_recibidas_efectivo" value="${devolucionesRecibidas.desglose.efectivo}">
-                        
-                        <label for="conteo_final_total"><b>Valor Total Real en Caja al Cierre (Efectivo + Cuentas):</b></label>
-                        <input type="number" step="0.01" name="conteo_final_total" id="conteo_final_total" required>
+
+                        <!-- Apertura -->
+                        <input type="hidden" name="saldo_apertura_efectivo" value="${saldoApertura.efectivo}">
+                        <input type="hidden" name="saldo_apertura_transferencia" value="${saldoApertura.transferencia}">
+                        <input type="hidden" name="saldo_apertura" value="${data.saldo_apertura.total}">
+
+                        <!-- Totales del día -->
+                        <input type="hidden" name="total_ingresos" value="${data.ingresos.total}">
+                        <input type="hidden" name="total_egresos" value="${data.egresos.total}">
+                        <input type="hidden" name="balance_dia" value="${data.balance_dia.total}">
+                        <input type="hidden" name="saldo_final" value="${data.saldo_final || 0}">
+
+                        <!-- Conteo real -->
+                        <label for="conteo_efectivo"><b>Conteo Real en Efectivo:</b></label>
+                        <input type="number" step="0.01" name="conteo_efectivo" id="conteo_efectivo" value="${data.saldo_final_esperado.desglose.efectivo}" required>
+
+                        <label for="conteo_transferencia"><b>Conteo Real en Transferencia:</b></label>
+                        <input type="number" step="0.01" name="conteo_transferencia" id="conteo_transferencia" value="${data.saldo_final_esperado.desglose.transferencia}" required>
+
                         <label for="notas"><b>Notas Adicionales:</b></label>
                         <textarea name="notas" id="notas" rows="3"></textarea>
+
                         <button type="submit">CERRAR CAJA DEL DÍA</button>
                     </form>
                 `;
@@ -270,15 +336,13 @@
             seccionCierre.innerHTML = `<div class="caja-cerrada-msg" style="background-color: #f8d7da; color: #721c24;">Error de conexión. No se pudieron cargar los datos.</div>`;
         }
     }
-    
-    // MANEJADOR DE EVENTOS PARA EL FORMULARIO DE CIERRE
+
     seccionCierre.addEventListener('submit', async function(event) {
         if (event.target.matches('.cierre-form')) {
-            event.preventDefault(); 
-            
+            event.preventDefault();
             const form = event.target;
             const submitButton = form.querySelector('button[type="submit"]');
-            
+
             submitButton.disabled = true;
             submitButton.textContent = 'Guardando...';
 
@@ -291,7 +355,7 @@
                 const resultText = await response.text();
                 if (resultText.trim() === 'ok') {
                     alert('¡Caja cerrada con éxito!');
-                    actualizarCajaDiaria(); 
+                    actualizarCajaDiaria();
                 } else {
                     alert('Error al guardar el cierre:\n' + resultText);
                     submitButton.disabled = false;
@@ -306,62 +370,12 @@
         }
     });
 
-    // --- INICIO: MANEJADOR PARA EL MODAL DE DEVOLUCIÓN ---
-    // Este es el nuevo bloque que se encarga de la magia
-    const modalDevolucionEl = document.getElementById('modalDevolucionPrestamo');
-    if (modalDevolucionEl) {
-        const formDevolucion = modalDevolucionEl.querySelector('form');
-
-        formDevolucion.addEventListener('submit', async function(event) {
-            event.preventDefault(); // Evitamos que la página se recargue
-
-            const submitButton = formDevolucion.querySelector('button[type="submit"]');
-            submitButton.disabled = true;
-            submitButton.textContent = 'Guardando...';
-
-            try {
-                const formData = new FormData(formDevolucion);
-                const response = await fetch(formDevolucion.action, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const resultText = await response.text();
-
-                if (response.ok && resultText.trim().toLowerCase().includes('ok')) { // Hacemos la comprobación más flexible
-                    alert('¡Devolución registrada con éxito!');
-                    
-                    const modal = bootstrap.Modal.getInstance(modalDevolucionEl);
-                    modal.hide();
-
-                    // ¡ACTUALIZAMOS LA CAJA PARA VER LOS CAMBIOS!
-                    actualizarCajaDiaria(); 
-                } else {
-                    alert('Error al guardar la devolución:\n' + resultText);
-                }
-            } catch (error) {
-                console.error('Error de red al guardar la devolución:', error);
-                alert('Hubo un error de conexión. Inténtalo de nuevo.');
-            } finally {
-                // Reactivamos el botón sin importar el resultado
-                submitButton.disabled = false;
-                submitButton.textContent = 'Guardar Devolución';
-            }
-        });
-    }
-    // --- FIN: MANEJADOR PARA EL MODAL DE DEVOLUCIÓN ---
-
-
-    // EVENT LISTENERS Y CARGA INICIAL
     fechaInput.addEventListener('change', actualizarCajaDiaria);
     sedeInput.addEventListener('change', actualizarCajaDiaria);
-
-    actualizarCajaDiaria(); // Carga inicial
+    actualizarCajaDiaria();
 })();
 </script>
-    <?php include 'devolucion_modal.php'; ?>
-    <!-- PEGA ESTE BLOQUE AL FINAL DE TU ARCHIVO caja_diaria.php -->
-
+<?php include 'devolucion_modal.php'; ?>
 <!-- Modal de Información de Movimientos -->
 <div class="modal fade" id="infoMovimientosModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
