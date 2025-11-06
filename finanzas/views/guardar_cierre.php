@@ -6,7 +6,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_sede = intval($_POST['id_sede']);
     $fecha_cierre = $_POST['fecha_cierre'];
 
-    // --- Apertura ---
+    // --- Apertura (estos se guardan para referencia) ---
     $saldo_apertura_efectivo = floatval($_POST['saldo_apertura_efectivo']);
     $saldo_apertura_transferencia = floatval($_POST['saldo_apertura_transferencia']);
     $saldo_apertura = $saldo_apertura_efectivo + $saldo_apertura_transferencia;
@@ -16,55 +16,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $total_egresos = floatval($_POST['total_egresos']);
     $balance_dia    = floatval($_POST['balance_dia']);
 
-    // --- Saldo esperado por sistema (apertura + balance) ---
-    $saldo_final = $saldo_apertura + $balance_dia;
+    // --- Saldo esperado por sistema (Apertura + Balance) ---
+    $saldo_final = floatval($_POST['saldo_final']); // Viene del formulario (calculado en JS)
 
     // --- Conteo real ingresado ---
-    $saldo_cierre_efectivo      = floatval($_POST['conteo_efectivo']);
-    $saldo_cierre_transferencia = floatval($_POST['conteo_transferencia']);
-    $conteo_total = $saldo_cierre_efectivo + $saldo_cierre_transferencia;
+    $conteo_efectivo      = floatval($_POST['conteo_efectivo']);
+    $conteo_transferencia = floatval($_POST['conteo_transferencia']);
+    $conteo_total = $conteo_efectivo + $conteo_transferencia;
 
     // --- Diferencia ---
     $diferencia = $conteo_total - $saldo_final;
 
     $notas = $_POST['notas'] ?? '';
 
-    // --- INSERT ---
+    // --- INSERT (CORREGIDO) ---
+    // Se usan los nombres de columna correctos de tu tabla
+    // (conteo_efectivo_cierre, conteo_transferencia_cierre)
     $stmt = $conn->prepare("
         INSERT INTO cierres_caja 
-        (id_sede, fecha, saldo_apertura, saldo_apertura_efectivo, saldo_apertura_transferencia,
-         total_ingresos, total_egresos, balance_dia, saldo_final,
+        (id_sede, fecha, 
+         saldo_apertura, total_ingresos, total_egresos, balance_dia, saldo_final, 
          diferencia, notas,
-         saldo_cierre_efectivo, saldo_cierre_transferencia)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         conteo_efectivo_cierre, conteo_transferencia_cierre)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE
             saldo_apertura = VALUES(saldo_apertura),
-            saldo_apertura_efectivo = VALUES(saldo_apertura_efectivo),
-            saldo_apertura_transferencia = VALUES(saldo_apertura_transferencia),
             total_ingresos = VALUES(total_ingresos),
             total_egresos = VALUES(total_egresos),
             balance_dia = VALUES(balance_dia),
             saldo_final = VALUES(saldo_final),
             diferencia = VALUES(diferencia),
             notas = VALUES(notas),
-            saldo_cierre_efectivo = VALUES(saldo_cierre_efectivo),
-            saldo_cierre_transferencia = VALUES(saldo_cierre_transferencia)
+            conteo_efectivo_cierre = VALUES(conteo_efectivo_cierre),
+            conteo_transferencia_cierre = VALUES(conteo_transferencia_cierre)
     ");
 
-    $stmt->bind_param("isdddddddsddd", 
+    // BIND_PARAM (CORREGIDO)
+    // Se ajusta el número de variables y los tipos (11 variables)
+    // (Tu base de datos no tiene columnas para guardar el desglose de apertura)
+    $stmt->bind_param("isdddddsdsd", 
         $id_sede, 
         $fecha_cierre, 
         $saldo_apertura,
-        $saldo_apertura_efectivo, 
-        $saldo_apertura_transferencia, 
         $total_ingresos, 
         $total_egresos, 
         $balance_dia, 
-        $saldo_final,     // <--- ahora se guarda el esperado real del sistema
+        $saldo_final,
         $diferencia, 
         $notas,
-        $saldo_cierre_efectivo, 
-        $saldo_cierre_transferencia
+        $conteo_efectivo,       // Se guarda en 'conteo_efectivo_cierre'
+        $conteo_transferencia   // Se guarda en 'conteo_transferencia_cierre'
     );
 
     if ($stmt->execute()) {

@@ -34,6 +34,20 @@
             $vehiculo_placa = $vehiculo['placa'] ?? '';
         }
     }
+    // Consultamos las cuentas bancarias activas desde la nueva tabla
+    $cuentas_result = $conn->query("
+        SELECT nombre_cuenta, clase_css 
+        FROM cuentas_bancarias 
+        WHERE activa = 1 
+        ORDER BY nombre_cuenta ASC
+    ");
+
+    $lista_cuentas = [];
+    if ($cuentas_result) {
+        while ($fila = $cuentas_result->fetch_assoc()) {
+            $lista_cuentas[] = $fila;
+        }
+    }
     ?>
 
     <link rel="stylesheet" href="recibos/public/estilos_form.css">
@@ -111,12 +125,15 @@
                 <label for="detalle_pago">Cuenta de Destino</label>
                 <select name="detalle_pago" id="detalle_pago">
                     <option value="" disabled selected hidden>Selecciona una cuenta</option>
-                    <option class="opt-daviplata" value="BANCOLOMBIA ALBA">BANCOLOMBIA ALBA</option>
-                    <option class="opt-davivienda" value="BANCOLOMBIA IPSA">BANCOLOMBIA IPSA</option>
-                    <option class="opt-bancolombia" value="BANCOLOMBIA ANDREA">BANCOLOMBIA ANDREA</option>
-                    <option class="opt-daviplata" value="BANCOLOMBIA DANIELA">BANCOLOMBIA DANIELA</option>
-                    <option class="opt-nequi" value="NEQUI">NEQUI</option>
-                    <option class="opt-davivienda" value="DAVIVIENDA LINA">DAVIVIENDA LINA</option>
+
+                    <?php foreach ($lista_cuentas as $cuenta): ?>
+                        <option 
+                            class="<?= htmlspecialchars($cuenta['clase_css']) ?>" 
+                            value="<?= htmlspecialchars($cuenta['nombre_cuenta']) ?>">
+                            <?= htmlspecialchars($cuenta['nombre_cuenta']) ?>
+                        </option>
+                    <?php endforeach; ?>
+
                 </select>
             </div>
             <!-- Descripción -->

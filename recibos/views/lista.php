@@ -380,3 +380,33 @@ $recibos = $stmt->get_result();
         window.open(url, '_blank');
     }
 </script>
+<script>
+    // --- ESTE SCRIPT VA EN TU PÁGINA PRINCIPAL (NO EN EL MODAL) ---
+
+    // 1. Imprime un mensaje para saber que este script SÍ se cargó.
+    console.log("DEBUG: Script principal cargado. Configurando listeners delegados...");
+
+    // 2. Se añade un solo listener al 'documento' (que siempre existe).
+    document.addEventListener('change', function(e) {
+
+        // 4. Comprobamos si el elemento que cambió FUE el select 'forma_pago_egreso'
+        if (e.target && e.target.id === 'forma_pago_egreso') {
+            console.log("DEBUG: (Delegado) Cambió 'forma_pago_egreso'. Valor:", e.target.value);
+
+            const detallePagoContainer = document.getElementById('detalle_pago_container_egreso');
+            const detallePagoSelect = document.getElementById('detalle_pago_egreso');
+
+            if (detallePagoContainer && detallePagoSelect) {
+                let esTransferencia = e.target.value === 'transferencia';
+                detallePagoContainer.style.display = esTransferencia ? 'block' : 'none';
+                detallePagoSelect.required = esTransferencia;
+                
+                if (!esTransferencia) {
+                    detallePagoSelect.value = '';
+                }
+            } else {
+                console.error("DEBUG: (Delegado) No se encontró el container o el select de detalle de pago.");
+            }
+        }
+    });
+</script>

@@ -1,4 +1,9 @@
-    <?php
+<?php
+    // --- AÑADE ESTAS 3 LÍNEAS ---
+    ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+    error_reporting(E_ALL);
+    // --- FIN ---
     include __DIR__ . '/../models/conexion.php';
 
     // Solo obtenemos la lista de sedes para el filtro
@@ -13,12 +18,12 @@
     <head>
         <meta charset="UTF-8">
         <title>Caja Diaria</title>
-        <style>
+<style>
             .neutro-monto { color: #6c757d; } /* Un gris oscuro */
             .caja-diaria { font-family: 'Segoe UI', sans-serif; padding: 20px; max-width: 900px; margin: auto; }
             .caja-header, .caja-resumen, .caja-cierre { padding: 20px; border: 2px solid #ccc; border-radius: 8px; margin-bottom: 20px; background-color: #f9f9f9b6; }
             .filtros { display: flex; gap: 20px; align-items: center; margin-bottom: 20px; }
-            .resumen-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }        .resumen-columna h4 { border-bottom: 2px solid #eee; padding-bottom: 10px; }
+            .resumen-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }      .resumen-columna h4 { border-bottom: 2px solid #eee; padding-bottom: 10px; }
             .resumen-linea { display: flex; justify-content: space-between; padding: 5px 0; }
             .total { font-weight: bold; border-top: 1px solid #ccc; padding-top: 10px; margin-top: 10px; }
             .ingreso-monto { color: #28a745; }
@@ -76,6 +81,92 @@
                 box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25); /* Un resplandor azul tipo Bootstrap */
                 outline: none; /* Quitamos el borde por defecto del navegador */
             }
+            
+            /* --- NUEVO: Estilo para el desglose de cuentas --- */
+            .desglose-linea {
+                font-size: 0.9em;
+                padding-left: 15px;
+                color: #555;
+                font-style: italic;
+            }
+            .desglose-linea span:first-child {
+                padding-left: 10px; /* Indentación */
+            }
+            /* --- Estilo para el botón de exportar --- */
+            .btn-exportar {
+                padding: 8px 12px;
+                font-size: 16px;
+                background-color: #198754; /* Verde */
+                color: white;
+                border-radius: 6px;
+                text-decoration: none;
+                font-weight: 600;
+                cursor: pointer; /* Añadido */
+            }
+
+            /* ============================================== */
+            /* === NUEVO: ESTILOS PARA EL MODAL DE EXPORTAR === */
+            /* ============================================== */
+            .modal {
+                display: none; 
+                position: fixed;
+                z-index: 1000;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                overflow: auto;
+                background-color: rgba(0,0,0,0.4);
+                padding-top: 60px;
+            }
+            .modal-content {
+                background-color: #fefefe;
+                margin: 5% auto;
+                padding: 20px;
+                border: 1px solid #888;
+                width: 80%;
+                max-width: 400px;
+                border-radius: 8px;
+                box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+            }
+            .modal-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 1px solid #ddd;
+                padding-bottom: 10px;
+            }
+            .modal-header h2 { margin: 0; font-size: 1.2rem; }
+            .close-modal {
+                color: #aaa;
+                font-size: 28px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+            .modal-body { padding-top: 15px; }
+            .modal-body label { display: block; margin-bottom: 5px; font-weight: bold; }
+            .modal-body input[type="date"] {
+                width: 100%;
+                padding: 8px;
+                margin-bottom: 15px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                box-sizing: border-box; /* Importante */
+            }
+            #btn-exportar-rango-modal {
+                background-color: #198754; /* Verde */
+                color: white;
+                padding: 10px 15px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                width: 100%;
+                font-size: 1rem;
+                font-weight: 600;
+            }
+            #btn-exportar-rango-modal:hover { background-color: #157347; }
+            /* === FIN DE ESTILOS DEL MODAL === */
+
         </style>
     </head>
     <body>
@@ -94,9 +185,9 @@
                     </option>
                 <?php endwhile; ?>
             </select>
-            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalDevolucionPrestamo">
-                + Registrar Devolución
-            </button>
+            <a id="btn-exportar-detalle" href="#" onclick="event.preventDefault()" class="btn-exportar">
+                Exportar Reporte Caja
+            </a>
         </div>
 
         <div class="caja-resumen">
@@ -126,6 +217,8 @@
                     <h4>Ingresos</h4>
                     <div class="resumen-linea"><span>Efectivo:</span> <span class="ingreso-monto" id="ingresos-efectivo">$0</span></div>
                     <div class="resumen-linea"><span>Transferencia:</span> <span class="ingreso-monto" id="ingresos-transferencia">$0</span></div>
+                    <!-- NUEVO: Contenedor para el desglose de ingresos por transferencia -->
+                    <div id="ingresos-transferencia-desglose"></div> 
                     <div class="resumen-linea"><span>Tarjeta:</span> <span class="ingreso-monto" id="ingresos-tarjeta">$0</span></div>
                     <div class="resumen-linea total"><span>Total Ingresos:</span> <span class="ingreso-monto" id="total-ingresos">$0</span></div>
                 </div>
@@ -133,6 +226,8 @@
                     <h4>Egresos (Servicios)</h4>
                     <div class="resumen-linea"><span>Efectivo:</span> <span class="salida-monto" id="egresos-efectivo">-$0</span></div>
                     <div class="resumen-linea"><span>Transferencia:</span> <span class="salida-monto" id="egresos-transferencia">-$0</span></div>
+                    <!-- NUEVO: Contenedor para el desglose de egresos por transferencia -->
+                    <div id="egresos-transferencia-desglose"></div>
                     <div class="resumen-linea"><span>Tarjeta:</span> <span class="salida-monto" id="egresos-tarjeta">-$0</span></div>
                     <div class="resumen-linea total"><span>Total Egresos:</span> <span class="salida-monto" id="total-egresos">-$0</span></div>
                 </div>
@@ -140,6 +235,8 @@
                     <h4>Balance</h4>
                     <div class="resumen-linea"><span>Efectivo:</span> <span class="balance-monto" id="balance-efectivo">$0</span></div>
                     <div class="resumen-linea"><span>Transferencia:</span> <span class="balance-monto" id="balance-transferencia">$0</span></div>
+                    <!-- NUEVO: Contenedor para el desglose de balance por transferencia -->
+                    <div id="balance-transferencia-desglose"></div>
                     <div class="resumen-linea"><span>Tarjeta:</span> <span class="balance-monto" id="balance-tarjeta">$0</span></div>
                     <div class="resumen-linea total"><span>Total Balance:</span> <span class="balance-monto" id="total-balance">$0</span></div>
                 </div>
@@ -147,30 +244,9 @@
 
             <hr>
             <hr>
-<!-- CÓDIGO NUEVO CON BOTÓN -->
-<h4 style="text-align:center; margin-top:20px; display: flex; align-items: center; justify-content: center; gap: 10px;">
-    <span>Movimientos no Operativos</span>
-    <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle" data-bs-toggle="modal" data-bs-target="#infoMovimientosModal" title="¿Qué significa esto?" style="width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; padding: 0; font-weight: bold;">
-        ?
-    </button>
-</h4>
-<div class="resumen-linea">
-    <span>(+) Préstamos Recibidos de otras Sedes:</span>
-    <span class="ingreso-monto" id="total-prestamos-recibidos">$0</span>
-</div>
-<div class="resumen-linea">
-    <span>(+) Devoluciones de Préstamos Recibidas:</span>
-    <span class="ingreso-monto" id="total-devoluciones">$0</span>
-</div>
-<div class="resumen-linea">
-    <span>(-) Préstamos Enviados a otras Sedes:</span>
-    <span class="salida-monto" id="prestamos-enviados">-$0</span>
-</div>
-<!-- CÓDIGO NUEVO -->
-<div class="resumen-linea">
-    <span>(-) Devoluciones Enviadas a otras sedes:</span>
-    <span class="salida-monto" id="total-devoluciones-enviadas">-$0</span>
-</div>
+            
+            <!-- SECCIÓN DE MOVIMIENTOS NO OPERATIVOS ELIMINADA -->
+
             <div class="resumen-linea total">
                 <span>BALANCE DEL DÍA (Ingresos - Salidas)</span>
                 <span id="balance-dia">$0</span> 
@@ -180,79 +256,154 @@
                 <span id="saldo-final">$0</span>
             </div>        
         <div class="caja-cierre" id="seccion-cierre">
-            /div>
+            <!-- El contenido de esta sección se genera por JavaScript -->
+        </div>
     </div>
+
+    <div id="modalRangoFechas" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Exportar Reporte por Rango</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <label for="fecha_inicio_modal">Fecha de Inicio:</label>
+                <input type="date" id="fecha_inicio_modal" value="<?php echo date('Y-m-d'); ?>">
+                
+                <label for="fecha_fin_modal">Fecha de Fin:</label>
+                <input type="date" id="fecha_fin_modal" value="<?php echo date('Y-m-d'); ?>">
+                
+                <button id="btn-exportar-rango-modal">Generar y Descargar Excel</button>
+            </div>
+        </div>
+    </div>
+
 <script>
 (function() {
     const fechaInput = document.getElementById('fecha');
     const sedeInput = document.getElementById('id_sede');
     const seccionCierre = document.getElementById('seccion-cierre');
-
-    if (!fechaInput || !sedeInput || !seccionCierre) return;
-
+    const exportButton = document.getElementById('btn-exportar-detalle');
+    // --- NUEVO: Referencias a elementos del Modal ---
+    const modal = document.getElementById('modalRangoFechas');
+    const closeModalSpan = document.querySelector('.close-modal');
+    const fechaInicioModal = document.getElementById('fecha_inicio_modal');
+    const fechaFinModal = document.getElementById('fecha_fin_modal');
+    const btnExportarRangoModal = document.getElementById('btn-exportar-rango-modal');
+    if (!fechaInput || !sedeInput || !seccionCierre || !exportButton) {
+        console.error("Faltan elementos JS: fecha, sede, cierre o exportButton");
+        return;
+    }
+    // Chequeo de modal
+    if (!modal || !closeModalSpan || !fechaInicioModal || !fechaFinModal || !btnExportarRangoModal) {
+         console.error("Faltan elementos JS del modal");
+         return;
+    }
     const formatoMoneda = (valor) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(valor);
+
+    // --- NUEVO: Función para generar el HTML del desglose de cuentas ---
+    const generarHtmlDesglose = (cuentasObjeto, contexto = 'ingreso') => {
+        if (!cuentasObjeto || Object.keys(cuentasObjeto).length === 0) {
+            return ''; // No hay desglose
+        }
+        
+        let html = '';
+        
+        for (const [cuenta, monto] of Object.entries(cuentasObjeto)) {
+            if (monto === 0) continue; // No mostrar cuentas con 0
+            
+            let montoFormateado = '';
+            let claseMonto = 'neutro-monto';
+            
+            // Determinamos el formato y estilo según el contexto
+            if (contexto === 'ingreso') {
+                claseMonto = 'ingreso-monto';
+                montoFormateado = formatoMoneda(monto);
+            } else if (contexto === 'egreso') {
+                claseMonto = 'salida-monto';
+                // Los montos de egresos en la API ya son positivos, les añadimos el menos
+                montoFormateado = '-' + formatoMoneda(monto);
+            } else if (contexto === 'balance') {
+                claseMonto = monto >= 0 ? 'balance-positivo' : 'balance-negativo';
+                // Los montos de balance ya vienen con el signo correcto
+                montoFormateado = formatoMoneda(monto);
+            }
+            
+            html += `
+                <div class="resumen-linea desglose-linea">
+                    <span>&hookrightarrow; ${cuenta}</span>
+                    <span class="${claseMonto}">${montoFormateado}</span>
+                </div>`;
+        }
+        return html;
+    };
+
 
     async function actualizarCajaDiaria() {
         const fecha = fechaInput.value;
         const idSede = sedeInput.value;
+        //exportButton.href = `finanzas/views/exportar_detalle_caja.php?fecha=${fecha}&id_sede=${idSede}`;
 
         try {
             const response = await fetch(`finanzas/views/api_caja_diaria.php?fecha=${fecha}&id_sede=${idSede}`);
             if (!response.ok) throw new Error('No se pudo conectar con la API');
             const data = await response.json();
 
-            // Valores por defecto para prevenir errores si la API no devuelve algo
-            const ingresos = data.ingresos?.desglose || { efectivo: 0, transferencia: 0, tarjeta: 0, otro: 0 };
-            const egresos = data.egresos?.desglose || { efectivo: 0, transferencia: 0, tarjeta: 0, otro: 0 };
-            const prestamosEnviados = data.prestamos_enviados?.desglose || { efectivo: 0, transferencia: 0, tarjeta: 0, otro: 0 };
-            const prestamosRecibidos = data.prestamos_recibidos?.desglose || { efectivo: 0, transferencia: 0, tarjeta: 0, otro: 0 };
-            const devolucionesRecibidas = data.devoluciones_recibidas?.desglose || { efectivo: 0, transferencia: 0, tarjeta: 0, otro: 0 };
-            const devolucionesEnviadas = data.devoluciones_enviadas?.desglose || { efectivo: 0, transferencia: 0, tarjeta: 0, otro: 0 };
+            // --- VALORES DE LA API (MODIFICADO) ---
+            // Ya no hay préstamos. El desglose es ahora un objeto anidado.
+            const ingresos = data.ingresos?.desglose;
+            const egresos = data.egresos?.desglose;
+            const balance = data.balance_dia?.desglose;
             const saldoApertura = data.saldo_apertura?.desglose || { efectivo: 0, transferencia: 0 };
 
             // --- ACTUALIZAR RESUMEN GENERAL ---
             document.getElementById('titulo-fecha').textContent = new Date(fecha + 'T00:00:00').toLocaleDateString('es-CO');
             
-            // Saldos de Apertura (corregido)
+            // Saldos de Apertura (sin cambios)
             document.getElementById('saldo-apertura').textContent = formatoMoneda(data.saldo_apertura.total || 0);
             document.getElementById('apertura-efectivo').textContent = formatoMoneda(saldoApertura.efectivo);
             document.getElementById('apertura-transferencia').textContent = formatoMoneda(saldoApertura.transferencia);
 
-            // Ingresos
+            // --- Ingresos (MODIFICADO para desglose) ---
             document.getElementById('total-ingresos').textContent = formatoMoneda(data.ingresos.total || 0);
-            document.getElementById('ingresos-efectivo').textContent = formatoMoneda(ingresos.efectivo);
-            document.getElementById('ingresos-transferencia').textContent = formatoMoneda(ingresos.transferencia);
-            document.getElementById('ingresos-tarjeta').textContent = formatoMoneda(ingresos.tarjeta);
+            document.getElementById('ingresos-efectivo').textContent = formatoMoneda(ingresos?.efectivo || 0);
+            document.getElementById('ingresos-transferencia').textContent = formatoMoneda(ingresos?.transferencia || 0); // Total Transferencias
+            document.getElementById('ingresos-tarjeta').textContent = formatoMoneda(ingresos?.tarjeta || 0);
+            // Insertar el desglose de cuentas
+            document.getElementById('ingresos-transferencia-desglose').innerHTML = generarHtmlDesglose(ingresos?.transferencias, 'ingreso');
 
-            // Egresos
+            // --- Egresos (MODIFICADO para desglose) ---
             document.getElementById('total-egresos').textContent = '-' + formatoMoneda(data.egresos.total || 0);
-            document.getElementById('egresos-efectivo').textContent = '-' + formatoMoneda(egresos.efectivo);
-            document.getElementById('egresos-transferencia').textContent = '-' + formatoMoneda(egresos.transferencia);
-            document.getElementById('egresos-tarjeta').textContent = '-' + formatoMoneda(egresos.tarjeta);
+            document.getElementById('egresos-efectivo').textContent = '-' + formatoMoneda(egresos?.efectivo || 0);
+            document.getElementById('egresos-transferencia').textContent = '-' + formatoMoneda(egresos?.transferencia || 0); // Total Transferencias
+            document.getElementById('egresos-tarjeta').textContent = '-' + formatoMoneda(egresos?.tarjeta || 0);
+            // Insertar el desglose de cuentas
+            document.getElementById('egresos-transferencia-desglose').innerHTML = generarHtmlDesglose(egresos?.transferencias, 'egreso');
 
-            // Balance Operativo (Ingresos - Egresos)
-            const balanceOperativoEfectivo = ingresos.efectivo - egresos.efectivo;
-            const balanceOperativoTransferencia = ingresos.transferencia - egresos.transferencia;
-            const balanceOperativoTarjeta = ingresos.tarjeta - egresos.tarjeta;
-            const totalBalanceOperativo = data.ingresos.total - data.egresos.total;
+            // --- Balance Operativo (MODIFICADO para desglose) ---
+            const balanceEfectivo = balance?.efectivo || 0;
+            const balanceTransferencia = balance?.transferencia || 0;
+            const balanceTarjeta = balance?.tarjeta || 0;
+            const totalBalanceOperativo = data.balance_dia.total || 0;
             
-            document.getElementById('balance-efectivo').textContent = formatoMoneda(balanceOperativoEfectivo);
-            document.getElementById('balance-transferencia').textContent = formatoMoneda(balanceOperativoTransferencia);
-            document.getElementById('balance-tarjeta').textContent = formatoMoneda(balanceOperativoTarjeta);
-            document.getElementById('total-balance').textContent = formatoMoneda(totalBalanceOperativo);
+            document.getElementById('balance-efectivo').textContent = formatoMoneda(balanceEfectivo);
+            document.getElementById('balance-efectivo').className = balanceEfectivo >= 0 ? 'balance-positivo' : 'balance-negativo';
+            
+            document.getElementById('balance-transferencia').textContent = formatoMoneda(balanceTransferencia);
+            document.getElementById('balance-transferencia').className = balanceTransferencia >= 0 ? 'balance-positivo' : 'balance-negativo';
 
-            document.getElementById('balance-efectivo').className = balanceOperativoEfectivo >= 0 ? 'balance-positivo' : 'balance-negativo';
-            document.getElementById('balance-transferencia').className = balanceOperativoTransferencia >= 0 ? 'balance-positivo' : 'balance-negativo';
-            document.getElementById('balance-tarjeta').className = balanceOperativoTarjeta >= 0 ? 'balance-positivo' : 'balance-negativo';
+            document.getElementById('balance-tarjeta').textContent = formatoMoneda(balanceTarjeta);
+            document.getElementById('balance-tarjeta').className = balanceTarjeta >= 0 ? 'balance-positivo' : 'balance-negativo';
+            
+            document.getElementById('total-balance').textContent = formatoMoneda(totalBalanceOperativo);
             document.getElementById('total-balance').className = totalBalanceOperativo >= 0 ? 'balance-positivo' : 'balance-negativo';
             
-            // Movimientos no Operativos (corregido)
-            document.getElementById('total-prestamos-recibidos').textContent = formatoMoneda(data.prestamos_recibidos.total || 0);
-            document.getElementById('total-devoluciones').textContent = formatoMoneda(data.devoluciones_recibidas.total || 0);
-            document.getElementById('prestamos-enviados').textContent = '-' + formatoMoneda(data.prestamos_enviados.total || 0);
-            document.getElementById('total-devoluciones-enviadas').textContent = '-' + formatoMoneda(data.devoluciones_enviadas.total || 0);
+            // Insertar el desglose de balance de cuentas
+            document.getElementById('balance-transferencia-desglose').innerHTML = generarHtmlDesglose(balance?.transferencias, 'balance');
+            
+            // --- MOVIMIENTOS NO OPERATIVOS (ELIMINADO) ---
 
-            // Saldos finales (corregido)
+            // --- Saldos finales (MODIFICADO) ---
             const balanceDiaEl = document.getElementById('balance-dia');
             balanceDiaEl.textContent = formatoMoneda(data.balance_dia.total || 0);
             balanceDiaEl.className = data.balance_dia.total >= 0 ? 'balance-positivo' : 'balance-negativo';
@@ -295,6 +446,8 @@
                 `;
             }
              else if (data.se_puede_cerrar && data.hubo_movimientos_hoy) {
+                // La lógica del formulario de cierre no necesita cambios,
+                // ya que usa el desglose 'plano' de saldo_final_esperado
                 seccionCierre.innerHTML = `
                     <h3 style="text-align:center;">Realizar Cierre de Caja</h3>
                     <p style="text-align:center; font-size: 14px;">Al cerrar la caja, se guardará un registro permanente.</p>
@@ -311,7 +464,9 @@
                         <input type="hidden" name="total_ingresos" value="${data.ingresos.total}">
                         <input type="hidden" name="total_egresos" value="${data.egresos.total}">
                         <input type="hidden" name="balance_dia" value="${data.balance_dia.total}">
-                        <input type="hidden" name="saldo_final" value="${data.saldo_final || 0}">
+                        
+                        <!-- MODIFICADO: saldo_final viene de saldo_final_esperado.total -->
+                        <input type="hidden" name="saldo_final" value="${data.saldo_final_esperado.total || 0}">
 
                         <!-- Conteo real -->
                         <label for="conteo_efectivo"><b>Conteo Real en Efectivo:</b></label>
@@ -337,6 +492,7 @@
         }
     }
 
+    // La lógica de envío del formulario de cierre no necesita cambios
     seccionCierre.addEventListener('submit', async function(event) {
         if (event.target.matches('.cierre-form')) {
             event.preventDefault();
@@ -373,58 +529,57 @@
     fechaInput.addEventListener('change', actualizarCajaDiaria);
     sedeInput.addEventListener('change', actualizarCajaDiaria);
     actualizarCajaDiaria();
+    // 1. Abrir el modal
+    exportButton.addEventListener('click', function() {
+        // Sincroniza las fechas del modal con la fecha principal
+        const fechaPrincipal = fechaInput.value;
+        fechaInicioModal.value = fechaPrincipal;
+        fechaFinModal.value = fechaPrincipal;
+        
+        modal.style.display = 'block';
+    });
+
+    // 2. Cerrar el modal (con la 'x')
+    closeModalSpan.addEventListener('click', function() {
+        modal.style.display = 'none';
+    });
+
+    // 3. Cerrar el modal (clic afuera)
+    window.addEventListener('click', function(event) {
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    });
+
+    // 4. Lógica del botón "Generar y Descargar" (dentro del modal)
+    btnExportarRangoModal.addEventListener('click', function() {
+        const fechaInicio = fechaInicioModal.value;
+        const fechaFin = fechaFinModal.value;
+        const idSede = sedeInput.value; // Toma la sede de la página principal
+
+        if (!fechaInicio || !fechaFin) {
+            alert('Por favor, seleccione ambas fechas.');
+            return;
+        }
+
+        if (fechaFin < fechaInicio) {
+            alert('La fecha de fin no puede ser anterior a la fecha de inicio.');
+            return;
+        }
+
+        // Construimos la URL para el script de PHP
+        const url = `finanzas/views/exportar_detalle_caja.php?fecha_inicio=${fechaInicio}&fecha_fin=${fechaFin}&id_sede=${idSede}`;
+        
+        // Redirigimos para iniciar la descarga
+        window.open(url, '_blank');
+        
+        // Cerramos el modal
+        modal.style.display = 'none';
+    });
 })();
+
 </script>
-<?php include 'devolucion_modal.php'; ?>
-<!-- Modal de Información de Movimientos -->
-<div class="modal fade" id="infoMovimientosModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="infoModalLabel">Guía de Movimientos no Operativos</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-      </div>
-      <div class="modal-body">
-        <p class="lead">Cada movimiento se ve desde la perspectiva de <strong>tu sede actual</strong>.</p>
-        <div class="table-responsive">
-            <table class="table table-bordered table-striped" style="font-size: 0.9rem;">
-              <thead class="table-dark">
-                <tr>
-                  <th style="width: 25%;">Concepto en TU Caja</th>
-                  <th>¿Qué significa?</th>
-                  <th style="width: 15%;" class="text-center">¿Cómo afecta a TU dinero?</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr style="vertical-align: middle;">
-                  <td><strong>(+) Préstamos Recibidos</strong></td>
-                  <td>Otra sede te presta dinero a ti.</td>
-                  <td class="text-center"><span class="badge bg-success">ENTRA</span></td>
-                </tr>
-                <tr style="vertical-align: middle;">
-                  <td><strong>(+) Devoluciones Recibidas</strong></td>
-                  <td>Te devuelven un dinero que tú habías prestado anteriormente.</td>
-                  <td class="text-center"><span class="badge bg-success">ENTRA</span></td>
-                </tr>
-                <tr style="vertical-align: middle;">
-                  <td><strong>(-) Préstamos Enviados</strong></td>
-                  <td>Tú le prestas dinero a otra sede.</td>
-                  <td class="text-center"><span class="badge bg-danger">SALE</span></td>
-                </tr>
-                <tr style="vertical-align: middle;">
-                  <td><strong>(-) Devoluciones Enviadas</strong></td>
-                  <td>Tú devuelves un dinero que te habían prestado anteriormente.</td>
-                  <td class="text-center"><span class="badge bg-danger">SALE</span></td>
-                </tr>
-              </tbody>
-            </table>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Entendido</button>
-      </div>
-    </div>
-  </div>
-</div>
+
+
     </body>
     </html>
