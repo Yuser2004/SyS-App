@@ -1,6 +1,10 @@
 <?php
 include __DIR__ . '/../models/conexion.php';
 
+// --- NUEVO: Obtener la lista de Sedes ---
+$sedes_result = $conn->query("SELECT id, nombre FROM sedes ORDER BY nombre");
+// --- FIN NUEVO ---
+
 // --- PASO 1: Configurar paginación y filtros ---
 $recibos_por_pagina = 25;
 $pagina_actual = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
@@ -9,10 +13,12 @@ if ($pagina_actual < 1) {
 }
 $offset = ($pagina_actual - 1) * $recibos_por_pagina;
 
+// --- MODIFICADO: Añadir id_sede ---
 $busqueda = $_GET['busqueda'] ?? '';
 $estado = $_GET['estado'] ?? '';
 $fechaDesde = $_GET['fechaDesde'] ?? '';
 $fechaHasta = $_GET['fechaHasta'] ?? '';
+$id_sede = $_GET['id_sede'] ?? ''; // <-- NUEVA LÍNEA
 
 $where_clauses = [];
 $params = [];
@@ -39,12 +45,19 @@ if (!empty($fechaHasta)) {
     $params[] = $fechaHasta;
     $types .= 's';
 }
+// --- NUEVO: Añadir filtro de Sede a la consulta (usando la tabla 'a' de asesor) ---
+if (!empty($id_sede)) {
+    $where_clauses[] = "a.id_sede = ?";
+    $params[] = $id_sede;
+    $types .= 'i'; 
+}
+// --- FIN NUEVO ---
 
 // --- PASO 2: Contar el total de registros (CON FILTROS) ---
 $sql_conteo = "SELECT COUNT(r.id) as total FROM recibos r 
                LEFT JOIN clientes c ON r.id_cliente = c.id_cliente
                LEFT JOIN vehiculo v ON r.id_vehiculo = v.id_vehiculo
-               LEFT JOIN asesor a ON r.id_asesor = a.id_asesor";
+               LEFT JOIN asesor a ON r.id_asesor = a.id_asesor"; // <-- JOIN ya existe
 
 if (!empty($where_clauses)) {
     $sql_conteo .= " WHERE " . implode(' AND ', $where_clauses);
@@ -66,17 +79,18 @@ if($total_paginas == 0) {
 }
 
 // --- PASO 4: Obtener los registros de la página actual (CON FILTROS Y LÍMITE) ---
-$sql = "SELECT r.id, r.fecha_tramite, c.nombre_completo AS cliente, v.placa, a.nombre AS asesor, r.valor_servicio, r.estado, r.metodo_pago, r.concepto_servicio AS concepto, (SELECT SUM(e.monto) FROM egresos e WHERE e.recibo_id = r.id) AS valor_total_egresos 
+$sql = "SELECT r.id, r.fecha_tramite, c.nombre_completo AS cliente, v.placa, a.nombre AS asesor, r.valor_servicio, r.estado, r.metodo_pago, r.concepto_servicio AS concepto, (SELECT SUM(e.monto) FROM egresos e WHERE e.recibo_id = r.id AND e.tipo = 'servicio') AS valor_total_egresos 
         FROM recibos r 
         LEFT JOIN clientes c ON r.id_cliente = c.id_cliente 
         LEFT JOIN vehiculo v ON r.id_vehiculo = v.id_vehiculo 
-        LEFT JOIN asesor a ON r.id_asesor = a.id_asesor";
+        LEFT JOIN asesor a ON r.id_asesor = a.id_asesor"; // <-- JOIN ya existe
 
 if (!empty($where_clauses)) {
     $sql .= " WHERE " . implode(' AND ', $where_clauses);
 }
 
 $sql .= " ORDER BY r.id DESC LIMIT ? OFFSET ?";
+// Añadir los parámetros de paginación al final
 $params[] = $recibos_por_pagina;
 $params[] = $offset;
 $types .= 'ii';
@@ -129,53 +143,71 @@ $recibos = $stmt->get_result();
 </style>
 <div class="members">
     <a href="#"
-        class="btnfos btnfos-3"
-        onclick="cargarContenido('recibos/views/crear.php'); return false;"
-        title="Registrar Recibo">
-        <img src="nuevo_recibo.png" alt="Registrar Recibo" style="width: 35px; height: 35px;">
+       class="btnfos btnfos-3"
+       onclick="cargarContenido('recibos/views/crear.php'); return false;"
+       title="Registrar Recibo">
+       <img src="nuevo_recibo.png" alt="Registrar Recibo" style="width: 35px; height: 35px;">
     </a>
     <a href="#"
-        class="btnfos btnfos-3"
-        onclick="exportarAExcel(); return false;"
-        title="Exportar a Excel">
-        <img src="excel.png" alt="Exportar a Excel" style="width: 35px; height: 35px;">
+       class="btnfos btnfos-3"
+       onclick="exportarAExcel(); return false;"
+       title="Exportar a Excel">
+       <img src="excel.png" alt="Exportar a Excel" style="width: 35px; height: 35px;">
     </a>
     <h2 class="titulo_lista">LISTA DE RECIBOS</h2>
 
     <div class="filtros">
+        <!-- NUEVO: Filtro de Sede -->
+        <label>Sede:
+            <select id="filtroSede" class="filtro-item">
+                <option value="">Todas</option>
+                <?php
+                if ($sedes_result->num_rows > 0) {
+                    while($sede = $sedes_result->fetch_assoc()) {
+                        // Marcar como seleccionado si el id_sede de la URL coincide
+                        $selected = ($id_sede == $sede['id']) ? 'selected' : '';
+                        echo "<option value=\"{$sede['id']}\" $selected>" . htmlspecialchars($sede['nombre']) . "</option>";
+                    }
+                }
+                ?>
+            </select>
+        </label>
+        <!-- FIN NUEVO -->
+
         <label>Estado:
             <select id="filtroEstado" class="filtro-item">
                 <option value="">Todos</option>
-                <option value="completado">Completado</option>
-                <option value="pendiente">Pendiente</option>
-                <option value="cancelado">Cancelado</option> 
+                <option value="completado" <?= ($estado == 'completado') ? 'selected' : '' ?>>Completado</option>
+                <option value="pendiente" <?= ($estado == 'pendiente') ? 'selected' : '' ?>>Pendiente</option>
+                <option value="cancelado" <?= ($estado == 'cancelado') ? 'selected' : '' ?>>Cancelado</option> 
             </select>
         </label>
 
         <label>Desde:
-            <input type="date" id="fechaDesde" class="filtro-item">
+            <input type="date" id="fechaDesde" class="filtro-item" value="<?= htmlspecialchars($fechaDesde) ?>">
         </label>
 
         <label>Hasta:
-            <input type="date" id="fechaHasta" class="filtro-item">
+            <input type="date" id="fechaHasta" class="filtro-item" value="<?= htmlspecialchars($fechaHasta) ?>">
         </label>
         
-        <input type="text" id="buscador" class="filtro-item" placeholder="Buscar por cliente, asesor o placa...">
+        <input type="text" id="buscador" class="filtro-item" placeholder="Buscar por cliente, asesor o placa..." value="<?= htmlspecialchars($busqueda) ?>">
+        
     </div>
 
     <table role="grid">
         <colgroup>
-        <col style="width: 40px;">  <!-- Solo para el ícono -->
-        <col style="width: 120px;">  <!-- Solo para el ícono -->
-        <col style="width: auto;">
-        <col style="width: auto;">
-        <col style="width: auto;">
-        <col style="width: auto;">
-        <col style="width: auto;">
-        <col style="width: auto;">
-        <col style="width: auto;">
-        <col style="width: 60px;">
-        <col style="width: 180px;"> <!-- Acciones con botones -->
+        <col style="width: 40px;">  <!-- # -->
+        <col style="width: 120px;"> <!-- Fecha -->
+        <col style="width: auto;"> <!-- Cliente -->
+        <col style="width: auto;"> <!-- Vehículo -->
+        <col style="width: auto;"> <!-- Concepto -->
+        <col style="width: auto;"> <!-- Asesor -->
+        <col style="width: auto;"> <!-- Valor -->
+        <col style="width: auto;"> <!-- Estado -->
+        <col style="width: auto;"> <!-- Método Pago -->
+        <col style="width: 60px;"> <!-- Egresos -->
+        <col style="width: 180px;"> <!-- Acciones -->
         </colgroup>
         <thead>
             <tr>
@@ -226,7 +258,7 @@ $recibos = $stmt->get_result();
                     </tr>
                 <?php endwhile; ?>
             <?php else: ?>
-                <tr><td colspan="11">No hay recibos registrados.</td></tr>
+                <tr><td colspan="11">No hay recibos registrados con los filtros seleccionados.</td></tr>
             <?php endif; ?>
         </tbody>
     </table>
@@ -237,7 +269,8 @@ $recibos = $stmt->get_result();
             'busqueda' => $busqueda,
             'estado' => $estado,
             'fechaDesde' => $fechaDesde,
-            'fechaHasta' => $fechaHasta
+            'fechaHasta' => $fechaHasta,
+            'id_sede' => $id_sede // <-- AÑADIDO
         ]);
         ?>
 
@@ -272,7 +305,7 @@ $recibos = $stmt->get_result();
         .then(res => res.text())
         .then(resp => {
             if (resp.trim() === "ok") {
-                cargarContenido('recibos/views/lista.php');
+                aplicarFiltrosServidor(); // Recargar con filtros actuales
             } else {
                 alert("Error al eliminar: " + resp);
             }
@@ -296,82 +329,72 @@ $recibos = $stmt->get_result();
             });
     }
 
-
-        function verFactura(id) {
-            // La ruta al nuevo archivo de impresión.
-            const url = `recibos/views/impresion.php?id=${id}`;
-            
-            // Abre la URL en una nueva pestaña del navegador.
-            window.open(url, '_blank');
-        }
+    function verFactura(id) {
+        const url = `recibos/views/impresion.php?id=${id}`;
+        window.open(url, '_blank');
+    }
 
     // =======================================================
-    //  LÓGICA UNIFICADA DE FILTROS
+    //  LÓGICA UNIFICADA DE FILTROS (MODIFICADA)
     // =======================================================
 
     // --- Referencias a TODOS los elementos de filtro ---
+    var filtroSede = document.getElementById('filtroSede');
     var filtroEstado = document.getElementById('filtroEstado');
     var fechaDesdeInput = document.getElementById('fechaDesde');
     var fechaHastaInput = document.getElementById('fechaHasta');
-    var buscadorInput = document.getElementById('buscador'); // El nuevo buscador
-    var tablaRecibosBody = document.getElementById('tabla-recibos');
-    var filas = tablaRecibosBody.getElementsByTagName('tr');
+    var buscadorInput = document.getElementById('buscador');
+    // (ya no necesitamos 'tablaRecibosBody' o 'filas' para esto)
 
-    function aplicarFiltros() {
-        const estadoSeleccionado = filtroEstado.value.toLowerCase().trim();
-        const textoBusqueda = buscadorInput.value.toLowerCase().trim();
+    // --- NUEVA FUNCIÓN PARA RECARGAR LA VISTA CON FILTROS ---
+    function aplicarFiltrosServidor() {
+        const busqueda = buscadorInput.value;
+        const estado = filtroEstado.value;
+        const fechaDesde = fechaDesdeInput.value;
+        const fechaHasta = fechaHastaInput.value;
+        const idSede = filtroSede.value; // <-- NUEVO
 
-        // 1. Obtenemos las fechas como texto en formato YYYY-MM-DD
-        const fechaDesdeTexto = fechaDesdeInput.value;
-        const fechaHastaTexto = fechaHastaInput.value;
+        const params = new URLSearchParams({
+            busqueda: busqueda,
+            estado: estado,
+            fechaDesde: fechaDesde,
+            fechaHasta: fechaHasta,
+            id_sede: idSede // <-- NUEVO
+        });
 
-        for (const fila of filas) {
-            const celdaFecha = fila.cells[1];
-            const celdaCliente = fila.cells[2];
-            const celdaPlaca = fila.cells[3];
-            const celdaAsesor = fila.cells[5];
-            const celdaEstado = fila.cells[7];
-
-            if (celdaCliente && celdaPlaca && celdaAsesor && celdaEstado && celdaFecha) {
-                const estadoFila = celdaEstado.querySelector('input').value.toLowerCase().trim();
-                const cumpleEstado = (estadoSeleccionado === "" || estadoFila === estadoSeleccionado);
-                
-                // 2. Convertimos la fecha de la fila a formato YYYY-MM-DD
-                const partesFecha = celdaFecha.querySelector('input').value.split('/');
-                const fechaFilaTexto = `${partesFecha[2]}-${partesFecha[1]}-${partesFecha[0]}`;
-                
-                // 3. Comparamos las fechas como texto simple
-                const cumpleFecha = (!fechaDesdeTexto || fechaFilaTexto >= fechaDesdeTexto) && (!fechaHastaTexto || fechaFilaTexto <= fechaHastaTexto);
-                
-                const textoFila = `${celdaCliente.querySelector('input').value} ${celdaPlaca.querySelector('input').value} ${celdaAsesor.querySelector('input').value}`.toLowerCase();
-                const cumpleBusqueda = textoFila.includes(textoBusqueda);
-
-                if (cumpleEstado && cumpleFecha && cumpleBusqueda) {
-                    fila.style.display = "";
-                } else {
-                    fila.style.display = "none";
-                }
-            }
-        }
+        // Recargar el contenido de la lista con los filtros
+        // Mantenemos la página 1 para la nueva búsqueda
+        cargarContenido(`recibos/views/lista.php?pagina=1&${params.toString()}`);
     }
+    
     // --- Añadir los Event Listeners a TODOS los filtros ---
-    filtroEstado.addEventListener('change', aplicarFiltros);
-    fechaDesdeInput.addEventListener('change', aplicarFiltros);
-    fechaHastaInput.addEventListener('change', aplicarFiltros);
-    buscadorInput.addEventListener('input', aplicarFiltros); // 'input' es mejor para búsqueda en vivo
+    // (Estos reemplazarán tu antigua función aplicarFiltros)
+    filtroSede.addEventListener('change', aplicarFiltrosServidor);
+    filtroEstado.addEventListener('change', aplicarFiltrosServidor);
+    fechaDesdeInput.addEventListener('change', aplicarFiltrosServidor);
+    fechaHastaInput.addEventListener('change', aplicarFiltrosServidor);
+    // Para el buscador, 'input' puede ser muy pesado en el servidor. 
+    // 'change' (cuando pierde el foco) o 'keydown' (al presionar Enter) es más ligero.
+    // Usaremos 'input' como lo tenías, pero tenlo en cuenta si se vuelve lento.
+    buscadorInput.addEventListener('input', aplicarFiltrosServidor); 
+    
+
+    // --- MODIFICADA: exportarAExcel() ---
     function exportarAExcel() {
         // Obtenemos los valores actuales de los filtros
         const estado = document.getElementById('filtroEstado').value;
         const fechaDesde = document.getElementById('fechaDesde').value;
         const fechaHasta = document.getElementById('fechaHasta').value;
         const busqueda = document.getElementById('buscador').value;
+        const idSede = document.getElementById('filtroSede').value; // <-- AÑADIDO
 
         // Construimos la URL con los parámetros
         const params = new URLSearchParams({
             estado: estado,
             fechaDesde: fechaDesde,
             fechaHasta: fechaHasta,
-            busqueda: busqueda
+            busqueda: busqueda,
+            id_sede: idSede // <-- AÑADIDO
         });
 
         const url = `recibos/exportar_excel.php?${params.toString()}`;
@@ -381,26 +404,17 @@ $recibos = $stmt->get_result();
     }
 </script>
 <script>
-    // --- ESTE SCRIPT VA EN TU PÁGINA PRINCIPAL (NO EN EL MODAL) ---
-
-    // 1. Imprime un mensaje para saber que este script SÍ se cargó.
+    // --- (Tu script de listener delegado no cambia) ---
     console.log("DEBUG: Script principal cargado. Configurando listeners delegados...");
-
-    // 2. Se añade un solo listener al 'documento' (que siempre existe).
     document.addEventListener('change', function(e) {
-
-        // 4. Comprobamos si el elemento que cambió FUE el select 'forma_pago_egreso'
         if (e.target && e.target.id === 'forma_pago_egreso') {
             console.log("DEBUG: (Delegado) Cambió 'forma_pago_egreso'. Valor:", e.target.value);
-
             const detallePagoContainer = document.getElementById('detalle_pago_container_egreso');
             const detallePagoSelect = document.getElementById('detalle_pago_egreso');
-
             if (detallePagoContainer && detallePagoSelect) {
                 let esTransferencia = e.target.value === 'transferencia';
                 detallePagoContainer.style.display = esTransferencia ? 'block' : 'none';
                 detallePagoSelect.required = esTransferencia;
-                
                 if (!esTransferencia) {
                     detallePagoSelect.value = '';
                 }
