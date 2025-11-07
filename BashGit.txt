@@ -2,7 +2,7 @@ cd /c/xampp/htdocs/SyS-app
 
 ip correcta de mi host: 162.240.99.156
 git add .
-git commit -m "Descripción clara del cambio"
+git commit -m "RANGO DE FECHAS PERFECTO, AHORA DESCRIPCION MAS CLARA POR DIA FALTA"
 git push
 
 (PARA PODER HACER CAMBIOS EN EL GIT)

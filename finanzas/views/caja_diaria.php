@@ -415,8 +415,8 @@
             // --- ACTUALIZAR SECCIÓN DE CIERRE ---
             if (data.cierre_info) {
                 const conteoRegistrado = 
-                    (parseFloat(data.cierre_info.saldo_cierre_efectivo || 0) + 
-                    parseFloat(data.cierre_info.saldo_cierre_transferencia || 0));
+                    (parseFloat(data.cierre_info.conteo_efectivo_cierre || 0) +
+                    parseFloat(data.cierre_info.conteo_transferencia_cierre || 0));
 
                 seccionCierre.innerHTML = `
                     <h3 style="text-align:center;">Caja Cerrada</h3>
