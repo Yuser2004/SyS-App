@@ -18,9 +18,6 @@ $fechaHasta = $_GET['fechaHasta'] ?? '';
 $busqueda = $_GET['busqueda'] ?? '';
 $id_sede = $_GET['id_sede'] ?? ''; // <-- NUEVA LÍNEA
 
-// ==========================================================
-// Consulta SQL - MODIFICADA
-// ==========================================================
 $sql = "
     SELECT 
         r.id, 

@@ -9,50 +9,83 @@ $fecha_hasta = $_GET['fecha_hasta'] ?? date('Y-m-t');
 $sede_id = $_GET['sede_id'] ?? '';
 
 // --- 1. CÁLCULO DE TOTALES ---
+$params_base = [$fecha_desde, $fecha_hasta];
+$types_base = "ss";
+$where_sede_recibo_asesor = ""; // Alias 'a' para asesor en recibos
+$where_sede_gasto = ""; // Alias 'g' para gastos_sede
+
+if (!empty($sede_id)) {
+    $params_base[] = $sede_id;
+    $types_base .= "i";
+    $where_sede_recibo_asesor = " AND a.id_sede = ? ";
+    $where_sede_gasto = " AND g.id_sede = ? "; // Filtro para la tabla gastos_sede
+}
+
 // Ingresos:
 $sql_total_ingresos = "SELECT SUM(r.valor_servicio) AS total 
                        FROM recibos r
                        LEFT JOIN asesor a ON r.id_asesor = a.id_asesor
-                       WHERE r.estado = 'completado' AND r.fecha_tramite BETWEEN ? AND ?";
-if (!empty($sede_id)) $sql_total_ingresos .= " AND a.id_sede = ?";
+                       WHERE r.estado = 'completado' AND r.fecha_tramite BETWEEN ? AND ? $where_sede_recibo_asesor";
 $stmt_ingresos = $conn->prepare($sql_total_ingresos);
-$types = !empty($sede_id) ? "ssi" : "ss";
-$params = !empty($sede_id) ? [$fecha_desde, $fecha_hasta, $sede_id] : [$fecha_desde, $fecha_hasta];
-$stmt_ingresos->bind_param($types, ...$params);
+$stmt_ingresos->bind_param($types_base, ...$params_base);
 $stmt_ingresos->execute();
 $total_ingresos = $stmt_ingresos->get_result()->fetch_assoc()['total'] ?? 0;
 $stmt_ingresos->close();
 
-// Egresos:
+// Egresos (asociados a servicios):
 $sql_total_egresos = "SELECT SUM(e.monto) AS total 
                       FROM egresos e 
                       JOIN recibos r ON e.recibo_id = r.id
                       LEFT JOIN asesor a ON r.id_asesor = a.id_asesor
-                      WHERE r.estado = 'completado' AND e.fecha BETWEEN ? AND ? AND e.tipo = 'servicio'";
-if (!empty($sede_id)) $sql_total_egresos .= " AND a.id_sede = ?";
+                      WHERE r.estado = 'completado' AND e.fecha BETWEEN ? AND ? AND e.tipo = 'servicio' $where_sede_recibo_asesor";
 $stmt_egresos = $conn->prepare($sql_total_egresos);
-$stmt_egresos->bind_param($types, ...$params);
+$stmt_egresos->bind_param($types_base, ...$params_base);
 $stmt_egresos->execute();
 $total_egresos = $stmt_egresos->get_result()->fetch_assoc()['total'] ?? 0;
 $stmt_egresos->close();
 
-// Utilidad
-$utilidad_final = $total_ingresos - $total_egresos;
+// NUEVO: Gastos de Sede (independientes):
+$params_gasto = [$fecha_desde, $fecha_hasta];
+$types_gasto = "ss";
+$where_sede_gasto_simple = "";
+if (!empty($sede_id)) {
+    $params_gasto[] = $sede_id;
+    $types_gasto .= "i";
+    $where_sede_gasto_simple = " AND id_sede = ? ";
+}
+
+$sql_total_gastos = "SELECT SUM(g.monto) AS total 
+                     FROM gastos_sede g
+                     WHERE g.fecha BETWEEN ? AND ? $where_sede_gasto_simple";
+$stmt_gastos = $conn->prepare($sql_total_gastos);
+$stmt_gastos->bind_param($types_gasto, ...$params_gasto);
+$stmt_gastos->execute();
+$total_gastos = $stmt_gastos->get_result()->fetch_assoc()['total'] ?? 0;
+$stmt_gastos->close();
+
+
+// Utilidad (Actualizada)
+$utilidad_final = $total_ingresos - $total_egresos - $total_gastos;
 
 // --- 2. DESGLOSE POR MÉTODO DE PAGO ---
 $metodos_pago = ['efectivo', 'transferencia', 'tarjeta', 'otro'];
 $desglose_pagos = [];
 foreach ($metodos_pago as $metodo) {
+    
+    $params_metodo = [$metodo, $fecha_desde, $fecha_hasta];
+    $types_metodo = "sss";
+    if (!empty($sede_id)) {
+        $params_metodo[] = $sede_id;
+        $types_metodo .= "i";
+    }
+
     // Ingresos por método
     $sql_ing_m = "SELECT SUM(r.valor_servicio) AS total 
                   FROM recibos r 
                   LEFT JOIN asesor a ON r.id_asesor = a.id_asesor 
-                  WHERE r.estado = 'completado' AND r.metodo_pago = ? AND r.fecha_tramite BETWEEN ? AND ?";
-    if (!empty($sede_id)) $sql_ing_m .= " AND a.id_sede = ?";
+                  WHERE r.estado = 'completado' AND r.metodo_pago = ? AND r.fecha_tramite BETWEEN ? AND ? $where_sede_recibo_asesor";
     $stmt = $conn->prepare($sql_ing_m);
-    $types_m = !empty($sede_id) ? "sssi" : "sss";
-    $params_m = !empty($sede_id) ? [$metodo, $fecha_desde, $fecha_hasta, $sede_id] : [$metodo, $fecha_desde, $fecha_hasta];
-    $stmt->bind_param($types_m, ...$params_m);
+    $stmt->bind_param($types_metodo, ...$params_metodo);
     $stmt->execute();
     $ingresos_metodo = $stmt->get_result()->fetch_assoc()['total'] ?? 0;
     
@@ -61,51 +94,71 @@ foreach ($metodos_pago as $metodo) {
                   FROM egresos e 
                   JOIN recibos r ON e.recibo_id = r.id 
                   LEFT JOIN asesor a ON r.id_asesor = a.id_asesor 
-                  WHERE r.estado = 'completado' AND e.forma_pago = ? AND e.fecha BETWEEN ? AND ? AND e.tipo = 'servicio'";
-    if (!empty($sede_id)) $sql_egr_m .= " AND a.id_sede = ?";
+                  WHERE r.estado = 'completado' AND e.forma_pago = ? AND e.fecha BETWEEN ? AND ? AND e.tipo = 'servicio' $where_sede_recibo_asesor";
     $stmt = $conn->prepare($sql_egr_m);
-    $stmt->bind_param($types_m, ...$params_m);
+    $stmt->bind_param($types_metodo, ...$params_metodo);
     $stmt->execute();
     $egresos_metodo = $stmt->get_result()->fetch_assoc()['total'] ?? 0;
+
+    // NUEVO: Gastos por método
+    $sql_gasto_m = "SELECT SUM(g.monto) AS total 
+                    FROM gastos_sede g
+                    WHERE g.metodo_pago = ? AND g.fecha BETWEEN ? AND ? $where_sede_gasto_simple";
+    $stmt = $conn->prepare($sql_gasto_m);
+    $stmt->bind_param($types_metodo, ...$params_metodo);
+    $stmt->execute();
+    $gastos_metodo = $stmt->get_result()->fetch_assoc()['total'] ?? 0;
     
     $desglose_pagos[$metodo] = [
         'ingresos' => $ingresos_metodo,
-        'salidas' => $egresos_metodo,
-        'balance' => $ingresos_metodo - $egresos_metodo
+        'salidas' => $egresos_metodo + $gastos_metodo, // Salidas = Egresos + Gastos
+        'balance' => $ingresos_metodo - ($egresos_metodo + $gastos_metodo)
     ];
     $stmt->close();
 }
 
 // --- 3. DESGLOSE DIARIO (fechas forzadas con DATE()) ---
+// (Actualizado con 3 UNION ALL)
 $sql_detalle_diario_base = "
-    SELECT fecha, SUM(ingreso) AS ingresos_diarios, SUM(egreso) AS egresos_diarios
+    SELECT fecha, SUM(ingreso) AS ingresos_diarios, SUM(egreso) AS egresos_diarios, SUM(gasto) AS gastos_diarios
     FROM (
-        SELECT DATE(r.fecha_tramite) AS fecha, r.valor_servicio AS ingreso, 0 AS egreso 
+        SELECT DATE(r.fecha_tramite) AS fecha, r.valor_servicio AS ingreso, 0 AS egreso, 0 AS gasto
         FROM recibos r 
         LEFT JOIN asesor a ON r.id_asesor = a.id_asesor 
         WHERE r.estado = 'completado' AND r.fecha_tramite BETWEEN ? AND ? %s
 
         UNION ALL
 
-        SELECT DATE(e.fecha) AS fecha, 0 AS ingreso, e.monto AS egreso 
+        SELECT DATE(e.fecha) AS fecha, 0 AS ingreso, e.monto AS egreso, 0 AS gasto
         FROM egresos e 
         JOIN recibos r ON e.recibo_id = r.id 
         LEFT JOIN asesor a ON r.id_asesor = a.id_asesor 
         WHERE r.estado = 'completado' AND e.fecha BETWEEN ? AND ? AND e.tipo = 'servicio' %s
+
+        UNION ALL
+
+        SELECT DATE(g.fecha) AS fecha, 0 AS ingreso, 0 AS egreso, g.monto AS gasto
+        FROM gastos_sede g
+        WHERE g.fecha BETWEEN ? AND ? %s
     ) AS transacciones
     GROUP BY fecha ORDER BY fecha DESC
 ";
-$params_detalle = [$fecha_desde, $fecha_hasta, $fecha_desde, $fecha_hasta];
-$types_detalle = "ssss";
-$where_sede_clause = '';
+
+$params_detalle = [$fecha_desde, $fecha_hasta, $fecha_desde, $fecha_hasta, $fecha_desde, $fecha_hasta];
+$types_detalle = "ssssss";
+$where_sede_r = ''; // Para recibos (alias a)
+$where_sede_e = ''; // Para egresos (alias a)
+$where_sede_g = ''; // Para gastos (alias g)
 
 if (!empty($sede_id)) {
-    $where_sede_clause = " AND a.id_sede = ? ";
-    array_push($params_detalle, $sede_id, $sede_id);
-    $types_detalle .= "ii";
+    $where_sede_r = " AND a.id_sede = ? ";
+    $where_sede_e = " AND a.id_sede = ? ";
+    $where_sede_g = " AND g.id_sede = ? "; // Diferente alias/tabla
+    array_push($params_detalle, $sede_id, $sede_id, $sede_id);
+    $types_detalle .= "iii";
 }
 
-$sql_detalle_diario = sprintf($sql_detalle_diario_base, $where_sede_clause, $where_sede_clause);
+$sql_detalle_diario = sprintf($sql_detalle_diario_base, $where_sede_r, $where_sede_e, $where_sede_g);
 $stmt_detalle = $conn->prepare($sql_detalle_diario);
 $stmt_detalle->bind_param($types_detalle, ...$params_detalle);
 $stmt_detalle->execute();
@@ -117,11 +170,11 @@ $respuesta = [
     'resumen' => [
         'total_ingresos' => $total_ingresos,
         'total_egresos' => $total_egresos,
-        'total_gastos' => 0,
-        'utilidad_final' => $utilidad_final,
+        'total_gastos' => $total_gastos, // Actualizado
+        'utilidad_final' => $utilidad_final, // Actualizado
     ],
     'desglose_pagos' => $desglose_pagos,
-    'detalle' => $resultado_detalle
+    'detalle' => $resultado_detalle // Contiene 'gastos_diarios'
 ];
 
 echo json_encode($respuesta);

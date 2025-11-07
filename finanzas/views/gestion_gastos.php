@@ -1,4 +1,4 @@
-<?php
+<!-- <?php
 // Incluir la conexión a la base de datos
 include __DIR__ . '/../models/conexion.php';
 
@@ -142,4 +142,4 @@ $stmt_gastos->close();
 </script>
 
 </body>
-</html>
+</html> -->

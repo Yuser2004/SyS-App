@@ -27,6 +27,7 @@ SyS-app/
     │       ├── guardar_devolucion.php          
     │       ├── gestion_gastos.php     
     │       ├── guardar_gasto.php
+    │       ├── buscar_asesor.php
     │       └── eliminar_gasto.php
     │
     ├── helpers/ 
