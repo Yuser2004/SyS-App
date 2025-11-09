@@ -37,17 +37,32 @@ $fecha_hasta = date('Y-m-t');
             --color-ingresos: #28a745; --color-egresos: #dc3545; --color-neto: #007bff;
             --color-utilidad: #17a2b8; --color-gastos: #ff6347; /* Color para gastos */
             --fondo-header: #f8f9fa; --borde: #dee2e6;
+            --color-excel: #1D6F42; /* Verde Excel */
         }
         .reporte-finanzas { font-family: 'Segoe UI', sans-serif; padding: 20px; background-color: #fff; }
         .reporte-finanzas h2 { text-align: center; color: #333; margin-bottom: 20px; }
         .form-fechas { display: flex; justify-content: center; flex-wrap: wrap; gap: 15px; margin-bottom: 30px; align-items: center; }
         .form-fechas label { font-weight: bold; }
         .form-fechas input[type="date"], .form-fechas select { padding: 8px 12px; border-radius: 5px; border: 1px solid var(--borde); font-size: 14px; }
-        .btn-registrar-gasto {
-            background-color: #007bff; color: white; border: none; padding: 8px 12px;
+        
+        /* Estilo base para botones */
+        .btn-accion {
+            border: none; padding: 8px 12px;
             border-radius: 5px; font-size: 14px; cursor: pointer; height: 38px;
+            color: white; font-weight: 500;
+        }
+        .btn-registrar-gasto {
+            background-color: var(--color-neto);
         }
         .btn-registrar-gasto:hover { background-color: #0056b3; }
+
+        /* ¡NUEVO! Botón de Excel */
+        .btn-exportar-excel {
+            background-color: var(--color-excel);
+        }
+        .btn-exportar-excel:hover { background-color: #165934; }
+
+
         .resumen-total { display: flex; flex-wrap: wrap; justify-content: center; text-align: center; margin-bottom: 40px; gap: 20px; }
         .resumen-caja { padding: 20px; border-radius: 8px; flex: 1; min-width: 200px; max-width: 240px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .resumen-caja h3 { margin: 0 0 10px; font-size: 1.1em; }
@@ -66,6 +81,18 @@ $fecha_hasta = date('Y-m-t');
         .monto-egreso { color: var(--color-egresos); font-weight: 500; }
         .monto-gasto { color: var(--color-gastos); font-weight: 500; }
         .monto-neto { color: var(--color-neto); font-weight: bold; }
+        
+        /* ¡NUEVO! Estilo para la fila de detalle de cuenta */
+        .fila-cuenta-detalle td {
+            font-size: 0.9em;
+            color: #555;
+            background-color: #fafafa;
+            border-bottom: 1px dotted #ddd;
+        }
+        .fila-cuenta-detalle td:first-child {
+             padding-left: 30px; /* Indentado */
+        }
+
     </style>
 </head>
 <body>
@@ -92,9 +119,14 @@ $fecha_hasta = date('Y-m-t');
             ?>
         </select>
         
-        <button type="button" id="btn-abrir-modal-gasto" class="btn-registrar-gasto">
+        <button type="button" id="btn-abrir-modal-gasto" class="btn-accion btn-registrar-gasto">
             + Registrar Gasto
         </button>
+        
+        <button type="button" id="btn-exportar" class="btn-accion btn-exportar-excel">
+            Exportar a Excel
+        </button>
+
     </div>
 
     <h3>Resumen del Período (<span id="rango-fechas-titulo"></span>)</h3>
@@ -139,9 +171,10 @@ $fecha_hasta = date('Y-m-t');
             <tbody id="cuerpo-tabla-detalle"></tbody>
         </table>
     </div>
-</div> <?php
+</div> 
+
+<?php
 // Incluimos el modal (que ahora es SOLO HTML y CSS)
-// $lista_cuentas ya está disponible desde la consulta de arriba
 include __DIR__ . '/gastos_sede_modal.php';
 ?>
 
@@ -176,6 +209,19 @@ include __DIR__ . '/gastos_sede_modal.php';
     const inputAsesorNombre = document.getElementById('buscar-asesor-gasto');
     const inputAsesorId = document.getElementById('id-asesor-gasto');
     const resultadosDiv = document.getElementById('asesor-gasto-resultados');
+    const selectTipoGasto = document.getElementById('gasto-tipo'); 
+
+    // --- LÓGICA PARA EL BOTÓN DE EXCEL ---
+    const btnExportar = document.getElementById('btn-exportar');
+    if (btnExportar) {
+        btnExportar.addEventListener('click', function() {
+            const fechaDesde = fechaDesdeInput.value;
+            const fechaHasta = fechaHastaInput.value;
+            const sedeId = filtroSede.value;
+            const url = `finanzas/views/exportar_excel.php?fecha_desde=${fechaDesde}&fecha_hasta=${fechaHasta}&sede_id=${sedeId}`;
+            window.open(url, '_blank');
+        });
+    }
 
     // --- 3. LÓGICA DEL MODAL (CONSOLIDADA) ---
     if (modalClose) {
@@ -189,9 +235,6 @@ include __DIR__ . '/gastos_sede_modal.php';
         };
     }
     
-    // =================================================================
-    // LÓGICA AÑADIDA PARA EL PAGO POR TRANSFERENCIA EN GASTOS
-    // =================================================================
     const metodoPagoSelectGasto = document.getElementById('gasto-metodo-pago');
     const detallePagoContainerGasto = document.getElementById('gasto-detalle-pago-container');
     const detallePagoSelectGasto = document.getElementById('gasto-detalle-pago');
@@ -200,23 +243,15 @@ include __DIR__ . '/gastos_sede_modal.php';
         
         metodoPagoSelectGasto.addEventListener('change', function() {
             let esTransferencia = this.value === 'transferencia';
-            
-            // Muestra u oculta el contenedor
             detallePagoContainerGasto.style.display = esTransferencia ? 'block' : 'none';
-            
-            // Hace que el select de cuenta sea obligatorio SÓLO si es transferencia
             detallePagoSelectGasto.required = esTransferencia; 
-            
             if (!esTransferencia) {
-                detallePagoSelectGasto.value = ''; // Limpia el valor si se cambia a otro método
+                detallePagoSelectGasto.value = ''; 
             }
         });
     } else {
         console.error("Error: No se encontraron los elementos del formulario de pago de gasto.");
     }
-    // =================================================================
-    // FIN DE LA LÓGICA AÑADIDA
-    // =================================================================
 
     if (inputAsesorNombre) {
         inputAsesorNombre.addEventListener('keyup', function() {
@@ -235,9 +270,6 @@ include __DIR__ . '/gastos_sede_modal.php';
                 return;
             }
 
-            // ==========================================================
-            // ¡RUTA CORREGIDA! (Restauramos 'finanzas/views/')
-            // ==========================================================
             fetch(`finanzas/views/buscar_asesor_para_gasto.php?term=${term}&sede_id=${sedeId}`)
                 .then(response => response.json())
                 .then(data => {
@@ -281,58 +313,45 @@ include __DIR__ . '/gastos_sede_modal.php';
                 return;
             }
 
+            const urlDestino = 'finanzas/views/guardar_gasto_sede.php'; // Siempre el mismo archivo
             const formData = new FormData(formGastoSede);
+            
             const btn = document.getElementById('btn-guardar-gasto');
             btn.textContent = 'Guardando...';
             btn.disabled = true;
 
-            // ==========================================================
-            // ¡RUTA CORREGIDA! (Restauramos 'finanzas/views/')
-            // ==========================================================
-            fetch('finanzas/views/guardar_gasto_sede.php', {
+            fetch(urlDestino, {
                 method: 'POST',
                 body: formData
             })
-            // ==========================================================
-            // ¡BLOQUE DE DEPURACIÓN MEJORADO!
-            // ==========================================================
             .then(response => {
                 if (!response.ok) {
-                    // Captura errores HTTP (como 404 o 500)
                     throw new Error(`Error HTTP: ${response.status} ${response.statusText}`);
                 }
-                return response.text(); // Pedimos la respuesta como TEXTO
+                return response.text(); 
             })
             .then(text => {
-                // Mostramos la respuesta CRUDA en la consola
-                console.log("Respuesta cruda del servidor:", text);
+                // console.log("Respuesta cruda del servidor:", text);
                 try {
-                    // Intentamos convertir el texto a JSON
                     return JSON.parse(text);
                 } catch (e) {
-                    // Si falla, es porque era un error HTML de PHP
                     throw new Error("Respuesta no es JSON. Error PHP: " + text);
                 }
             })
-            // ==========================================================
             .then(data => {
-                // Si llegamos aquí, el JSON era válido
                 if (data.success) {
-                    alert('Gasto guardado correctamente.');
+                    alert(data.message); // El PHP dirá "Gasto (sede) registrado"
                     formGastoSede.reset();
-                    // Ocultar el contenedor de detalle de pago al resetear
                     if (detallePagoContainerGasto) {
                          detallePagoContainerGasto.style.display = 'none';
                     }
                     modalOverlay.style.display = 'none';
                     actualizarReporte(); 
                 } else {
-                    // Muestra el mensaje de error del PHP (ej: "Campo obligatorio...")
                     alert('Error al guardar: ' + (data.message || 'Error desconocido'));
                 }
             })
             .catch(error => {
-                // Este .catch ahora muestra el error de red, 404, 500, o el error de JSON
                 console.error('Error en fetch guardar_gasto:', error);
                 alert('Error crítico: ' + error.message);
             })
@@ -349,20 +368,19 @@ include __DIR__ . '/gastos_sede_modal.php';
         const fechaHasta = fechaHastaInput.value;
         const sedeId = filtroSede.value; 
         
-        // ==========================================================
-        // ¡RUTA CORREGIDA! (Restauramos 'finanzas/views/')
-        // ==========================================================
         const url = `finanzas/views/api_reporte.php?fecha_desde=${fechaDesde}&fecha_hasta=${fechaHasta}&sede_id=${sedeId}`;
         
         try {
             const response = await fetch(url);
-            if (!response.ok) throw new Error('Error en la respuesta de la API');
+            if (!response.ok) {
+                throw new Error(`Error en la respuesta de la API: ${response.statusText}`);
+            }
             const data = await response.json();
 
+            // Resumen de cajas
             const ingresos = parseFloat(data.resumen.total_ingresos) || 0;
             const egresos = parseFloat(data.resumen.total_egresos) || 0;
             const gastos = parseFloat(data.resumen.total_gastos) || 0;
-            
             const utilidad = parseFloat(data.resumen.utilidad_final) || 0;
 
             resumenIngresos.textContent = formatoMoneda.format(ingresos);
@@ -380,14 +398,20 @@ include __DIR__ . '/gastos_sede_modal.php';
                 porcentajeUtilidad.textContent = '(0%)';
             }
 
+            // Rango de fechas
             const fechaDesdeFormato = new Date(fechaDesde + 'T05:00:00').toLocaleDateString('es-CO', {day: '2-digit', month: 'short', year: 'numeric'});
             const fechaHastaFormato = new Date(fechaHasta + 'T05:00:00').toLocaleDateString('es-CO', {day: '2-digit', month: 'short', year: 'numeric'});
             rangoFechasTitulo.textContent = `${fechaDesdeFormato} - ${fechaHastaFormato}`;
             
+            // ==========================================================
+            // ¡MODIFICADO! Lógica para Desglose de Pagos (con cuentas)
+            // ==========================================================
             cuerpoTablaPagos.innerHTML = '';
             for (const metodo in data.desglose_pagos) {
                 const item = data.desglose_pagos[metodo];
                 const nombreMetodo = metodo.charAt(0).toUpperCase() + metodo.slice(1);
+                
+                // Fila principal del método
                 cuerpoTablaPagos.innerHTML += `
                     <tr>
                         <td><strong>${nombreMetodo}</strong></td>
@@ -396,8 +420,36 @@ include __DIR__ . '/gastos_sede_modal.php';
                         <td class="monto-neto">${formatoMoneda.format(item.balance)}</td>
                     </tr>
                 `;
-            }
 
+                // ¡NUEVO! Bucle para las cuentas de transferencia
+                if (metodo === 'transferencia' && item.cuentas) {
+                    for (const nombreCuenta in item.cuentas) {
+                        const cuenta = item.cuentas[nombreCuenta];
+                        const ingresosCuenta = cuenta.ingresos || 0;
+                        const salidasCuenta = cuenta.salidas || 0;
+                        
+                        // Solo mostramos si hay movimiento
+                        if (ingresosCuenta > 0 || salidasCuenta > 0) {
+                            const balanceCuenta = ingresosCuenta - salidasCuenta;
+
+                            // Añadir una fila indentada para la cuenta
+                            cuerpoTablaPagos.innerHTML += `
+                                <tr class="fila-cuenta-detalle">
+                                    <td style="padding-left: 30px;">↪ ${nombreCuenta}</td>
+                                    <td class="monto-ingreso">${formatoMoneda.format(ingresosCuenta)}</td>
+                                    <td class="monto-egreso">${formatoMoneda.format(salidasCuenta * -1)}</td>
+                                    <td class="monto-neto">${formatoMoneda.format(balanceCuenta)}</td>
+                                </tr>
+                            `;
+                        }
+                    }
+                }
+            }
+            // ==========================================================
+            
+            // ==========================================================
+            // ¡CORREGIDO! Lógica para Desglose Diario
+            // ==========================================================
             cuerpoTablaDetalle.innerHTML = '';
             if (data.detalle && data.detalle.length > 0) {
                 data.detalle.forEach(fila => {
@@ -405,14 +457,17 @@ include __DIR__ . '/gastos_sede_modal.php';
                     const egresosDia = parseFloat(fila.egresos_diarios) || 0;
                     const gastosDia = parseFloat(fila.gastos_diarios) || 0;
                     const gananciaDiaria = ingresosDia - egresosDia - gastosDia; 
+                    
+                    // Asegurarse de que la fecha se maneja correctamente
+                    // Añadimos 'T05:00:00' para evitar problemas de zona horaria (UTC vs local)
                     const fechaFormato = new Date(fila.fecha + 'T05:00:00').toLocaleDateString('es-CO', {day: '2-digit', month: 'long'});
                     
                     cuerpoTablaDetalle.innerHTML += `
                         <tr>
                             <td>${fechaFormato}</td>
                             <td class="monto-ingreso">${formatoMoneda.format(ingresosDia)}</td>
-                            <td class="monto-egreso">${formatoMoneda.format(egresosDia)}</td>
-                            <td class="monto-gasto">${formatoMoneda.format(gastosDia)}</td>
+                            <td class="monto-egreso">${formatoMoneda.format(egresosDia * -1)}</td>
+                            <td class="monto-gasto">${formatoMoneda.format(gastosDia * -1)}</td>
                             <td class="monto-neto">${formatoMoneda.format(gananciaDiaria)}</td>
                         </tr>
                     `;
@@ -420,9 +475,13 @@ include __DIR__ . '/gastos_sede_modal.php';
             } else {
                 cuerpoTablaDetalle.innerHTML = '<tr><td colspan="5" style="text-align: center;">No hay transacciones en el período seleccionado.</td></tr>';
             }
+            // ==========================================================
+
         } catch (error) {
             console.error('Error al actualizar el reporte:', error);
-            cuerpoTablaDetalle.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">Error al cargar los datos.</td></tr>`;
+            // Mostrar error en ambas tablas
+            cuerpoTablaPagos.innerHTML = `<tr><td colspan="4" style="text-align: center; color: red;">Error al cargar datos: ${error.message}</td></tr>`;
+            cuerpoTablaDetalle.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">Error al cargar datos: ${error.message}</td></tr>`;
         }
     }
 
@@ -443,10 +502,14 @@ include __DIR__ . '/gastos_sede_modal.php';
 
             inputSedeIdModal.value = sedeSeleccionadaId;
             if (formGastoSede) formGastoSede.reset();
-            // Asegurarse de ocultar el detalle de pago al abrir
+            
+            if (selectTipoGasto) {
+                selectTipoGasto.value = 'sede'; 
+            }
             if (detallePagoContainerGasto) {
                 detallePagoContainerGasto.style.display = 'none';
             }
+
             if (inputAsesorId) inputAsesorId.value = '';
             const inputFecha = document.getElementById('gasto-fecha');
             if (inputFecha) inputFecha.value = new Date().toISOString().split('T')[0];

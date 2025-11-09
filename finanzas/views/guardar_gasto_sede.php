@@ -1,27 +1,25 @@
 <?php
 // finanzas/views/guardar_gasto_sede.php
 header('Content-Type: application/json');
-
-// ==========================================================
-// ¡RUTA CORREGIDA!
-// Debe ser '../models/' para subir a /finanzas y entrar a /models
-// ==========================================================
 include __DIR__ . '/../models/conexion.php'; 
 
 $respuesta = ['success' => false, 'message' => 'Error desconocido.'];
 
-// ==========================================================
-// ¡NUEVO! VERIFICAR CONEXIÓN
-// ==========================================================
 if (!$conn) {
      $respuesta['message'] = 'Error fatal: No se pudo conectar a la base de datos. Revisa /finanzas/models/conexion.php';
      echo json_encode($respuesta);
      exit;
 }
 
+// --- Captura y Depuración de tipo_gasto ---
+// Lo capturamos ANTES de la validación para poder mostrarlo
+$tipo_gasto = isset($_POST['tipo_gasto']) ? $_POST['tipo_gasto'] : '';
+
 // --- Validación de Datos ---
-if (empty($_POST['id_sede']) || empty($_POST['id_asesor']) || empty($_POST['descripcion']) || empty($_POST['monto']) || empty($_POST['metodo_pago']) || empty($_POST['fecha'])) {
-    $respuesta['message'] = 'Todos los campos marcados son obligatorios.';
+// ¡MODIFICADO! Añadimos 'tipo_gasto' a la validación
+if (empty($_POST['id_sede']) || empty($_POST['id_asesor']) || empty($_POST['descripcion']) || empty($_POST['monto']) || empty($_POST['metodo_pago']) || empty($_POST['fecha']) || empty($tipo_gasto)) {
+    // ¡MENSAJE DE DEPURACIÓN!
+    $respuesta['message'] = 'Todos los campos son obligatorios. El tipo de gasto recibido fue: "' . $tipo_gasto . '"';
     echo json_encode($respuesta);
     exit;
 }
@@ -34,36 +32,29 @@ $metodo_pago = $_POST['metodo_pago'];
 $fecha = $_POST['fecha'];
 $comprobante_url = NULL;
 
-// ==========================================================
-// VALIDACIÓN Y CAPTURA DE DETALLE_PAGO
-// ==========================================================
-$detalle_pago = NULL; // Por defecto es NULL (para efectivo, tarjeta, etc.)
+// --- Validación de valor de tipo_gasto ---
+if ($tipo_gasto !== 'sede' && $tipo_gasto !== 'personal') {
+    // ¡MENSAJE DE DEPURACIÓN!
+    $respuesta['message'] = 'Tipo de gasto no válido. Se recibió el valor: "' . $tipo_gasto . '"';
+    echo json_encode($respuesta);
+    exit;
+}
 
-// Si el método es 'transferencia', el detalle es obligatorio
+// --- VALIDACIÓN Y CAPTURA DE DETALLE_PAGO ---
+$detalle_pago = NULL; 
 if ($metodo_pago === 'transferencia') {
     if (empty($_POST['detalle_pago'])) {
         $respuesta['message'] = 'Para pagos por transferencia, debe seleccionar la cuenta de origen.';
         echo json_encode($respuesta);
         exit;
     }
-    // Si no está vacío, asignamos el valor
     $detalle_pago = $_POST['detalle_pago'];
 }
-// ==========================================================
-// FIN DE LA LÓGICA
-// ==========================================================
-
 
 // --- Manejo de Subida de Archivo ---
 if (isset($_FILES['comprobante']) && $_FILES['comprobante']['error'] == 0) {
-    // ==========================================================
-    // ¡RUTA CORREGIDA Y ROBUSTA!
-    // Sube 2 niveles (desde /finanzas/views) hasta la raíz de /SyS-app
-    // Y luego entra a /uploads/comprobantes/
-    // ==========================================================
-    $target_dir = __DIR__ . "/../../uploads/comprobantes/"; 
     
-    // Crear un nombre de archivo único
+    $target_dir = __DIR__ . "/../../uploads/comprobantes/"; 
     $file_extension = pathinfo($_FILES['comprobante']['name'], PATHINFO_EXTENSION);
     $allowed_types = ['jpg', 'jpeg', 'png', 'pdf'];
     
@@ -73,7 +64,6 @@ if (isset($_FILES['comprobante']) && $_FILES['comprobante']['error'] == 0) {
         exit;
     }
     
-    // Asegurarse de que el directorio exista
     if (!is_dir($target_dir)) {
         if (!mkdir($target_dir, 0755, true)) {
              $respuesta['message'] = 'Error: No se pudo crear el directorio de subida. Revisa permisos en /uploads/';
@@ -82,12 +72,11 @@ if (isset($_FILES['comprobante']) && $_FILES['comprobante']['error'] == 0) {
         }
     }
 
-    // Nombre único: gasto_sede_timestamp.ext
-    $safe_filename = "gasto_" . $id_sede . "_" . time() . "." . $file_extension;
+    // ¡MODIFICADO! Usamos $tipo_gasto en el nombre del archivo para diferenciarlo
+    $safe_filename = "gasto_" . $tipo_gasto . "_" . $id_sede . "_" . time() . "." . $file_extension;
     $target_file = $target_dir . $safe_filename;
 
     if (move_uploaded_file($_FILES['comprobante']['tmp_name'], $target_file)) {
-        // Guardamos la ruta relativa desde la raíz del proyecto (SyS-app/)
         $comprobante_url = "uploads/comprobantes/" . $safe_filename;
     } else {
         $respuesta['message'] = 'Error al mover el archivo subido. Revisa permisos.';
@@ -99,39 +88,44 @@ if (isset($_FILES['comprobante']) && $_FILES['comprobante']['error'] == 0) {
 // --- Inserción en la Base de Datos ---
 try {
     
-    // SQL AHORA INCLUYE 'detalle_pago'
+    // ==========================================================
+    // ¡MODIFICADO! SQL AHORA INCLUYE 'tipo_gasto'
+    // ==========================================================
     $sql = "INSERT INTO gastos_sede (
                 id_sede, id_asesor, descripcion, monto, metodo_pago, 
-                detalle_pago, -- Columna añadida
+                tipo_gasto, -- Columna añadida
+                detalle_pago, 
                 fecha, comprobante_url
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"; // 8 '?'
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"; // 9 '?'
     
     $stmt = $conn->prepare($sql);
 
     if ($stmt === false) {
-        // Capturar error de preparación
         $respuesta['message'] = 'Error al preparar la consulta: ' . $conn->error;
         echo json_encode($respuesta);
         exit;
     }
 
-    // bind_param AHORA INCLUYE 'detalle_pago'
-    $stmt->bind_param("iisdssss", // 8 tipos
+    // ==========================================================
+    // ¡MODIFICADO! bind_param AHORA INCLUYE 'tipo_gasto'
+    // ==========================================================
+    $stmt->bind_param("iisdsssss", // 9 tipos
         $id_sede, 
         $id_asesor, 
         $descripcion, 
         $monto, 
         $metodo_pago, 
-        $detalle_pago, // Variable añadida
+        $tipo_gasto, // Variable añadida
+        $detalle_pago, 
         $fecha, 
         $comprobante_url
     );
 
     if ($stmt->execute()) {
         $respuesta['success'] = true;
-        $respuesta['message'] = 'Gasto registrado correctamente.';
+        // Mensaje mejorado que confirma el tipo
+        $respuesta['message'] = 'Gasto (' . $tipo_gasto . ') registrado correctamente.'; 
     } else {
-        // Capturar error de ejecución
         $respuesta['message'] = 'Error al ejecutar la consulta: ' . $stmt->error;
     }
     $stmt->close();

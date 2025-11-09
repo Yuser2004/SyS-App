@@ -50,10 +50,12 @@ $stmt_final->execute();
 $result = $stmt_final->get_result();
 
 ?>
-<link rel="stylesheet" href="class="btnfos btnfos-3" css/tabla_estilo.css">
 <div class="members">
     <a href="#" class="btnfos btnfos-3" onclick="cargarContenido('cliente/views/fragmento_crear.php'); return false;" title="Nuevo cliente">
         <img src="nuevo_cliente.png" alt="Nuevo cliente" style="width: 40px; height: 40px;">
+    </a>
+    <a href="#" class="btnfos btnfos-3 btn-exportar" id="btn-exportar-clientes" title="Exportar a Excel">
+        <img src="excel.png" alt="Exportar" style="width: 40px; height: 40px;"> 
     </a>
     <h2 class="titulo_lista">LISTA DE CLIENTES</h2>
     
@@ -68,7 +70,7 @@ $result = $stmt_final->get_result();
         <col style="width: 180px;"> <!-- Acciones con botones -->
         </colgroup>
         <thead>
-             <tr>
+            <tr>
                 <th></th>
                 <th>Nombre Completo</th>
                 <th>Documento</th>
@@ -118,8 +120,8 @@ $result = $stmt_final->get_result();
     // ---- INICIO DEL MÓDULO PRIVADO ----
 
     // 1. FUNCIÓN DE ACTUALIZACIÓN PARCIAL
-    // Esta es la nueva función clave. En lugar de reemplazar todo,
-    // busca el contenido nuevo y lo inyecta en las secciones correctas.
+    // Esta es la nueva función clave. En lugar de reemplazar todo
+    // busca el contenido nuevo y lo inyecta en las secciones correctas
     async function actualizarContenidoParcial(ruta) {
         try {
             const respuesta = await fetch(ruta);
@@ -179,16 +181,24 @@ $result = $stmt_final->get_result();
     // Movemos el cursor al final del texto existente
     buscadorInput.setSelectionRange(buscadorInput.value.length, buscadorInput.value.length);
 
-    // 4. FUNCIONES GLOBALES PARA 'onclick'
-    // Se asignan a 'window' para que el HTML pueda encontrarlas.
-    
-    // La paginación AHORA TAMBIÉN usa la actualización parcial para una experiencia fluida
-    window.cargarPagina = function(pagina) {
-        const busquedaActual = buscadorInput.value;
-        const ruta = `cliente/views/fragmento_clientes.php?pagina=${pagina}&busqueda=${encodeURIComponent(busquedaActual)}`;
-        actualizarContenidoParcial(ruta); // <-- CAMBIO IMPORTANTE
-        return false;
-    }
+    // ==========================================================
+    // ¡NUEVO JAVASCRIPT AÑADIDO!
+    // Esta es la lógica que faltaba para el botón de exportar.
+    // ==========================================================
+    const btnExportar = document.getElementById('btn-exportar-clientes');
+    if (btnExportar) {
+        btnExportar.addEventListener('click', function(e) {
+            e.preventDefault();
+            // 1. Obtenemos el término de búsqueda actual
+            const busquedaActual = buscadorInput.value;
+            // 2. Creamos la URL apuntando al script de exportación
+            // (La ruta es 'cliente/exportar_excel.php' porque estamos en 'cliente/views/')
+            const url = `cliente/exportar_excel.php?busqueda=${encodeURIComponent(busquedaActual)}`;
+            // 3. Abrimos en una nueva pestaña para iniciar la descarga
+            window.open(url, '_blank');
+            return false;
+        });
+    }   
 
     window.editarCliente = function(id) {
         cargarContenido(`cliente/views/fragmento_editar.php?id=${id}`);

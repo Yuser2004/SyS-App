@@ -31,17 +31,17 @@ if ($recibo_id > 0) {
     }
     $stmt_recibo->close();
 
-    // 2. Consulta de egresos AHORA INCLUYE los nombres de las sedes
+    // ==========================================================
+    // ¡CONSULTA CORREGIDA!
+    // Se eliminaron los LEFT JOIN a las columnas 'sede_origen_id' 
+    // y 'sede_destino_id' porque no existen en la tabla 'egresos'.
+    // ==========================================================
     $stmt_egresos = $conn->prepare("
-        SELECT 
-            e.*, 
-            so.nombre AS sede_origen_nombre, 
-            sd.nombre AS sede_destino_nombre
-        FROM egresos e
-        LEFT JOIN sedes so ON e.sede_origen_id = so.id
-        LEFT JOIN sedes sd ON e.sede_destino_id = sd.id
+        SELECT e.* FROM egresos e
         WHERE e.recibo_id = ?
     ");
+    // ==========================================================
+    
     $stmt_egresos->bind_param("i", $recibo_id);
     $stmt_egresos->execute();
     $egresos = $stmt_egresos->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -141,9 +141,6 @@ if (!$recibo) {
                                 <span class="detalle-egreso-descripcion">
                                     <?php if ($egreso['tipo'] == 'prestamo'): ?>
                                         <strong>Préstamo:</strong> <?= htmlspecialchars($egreso['descripcion']) ?><br>
-                                        <small style="color: #6c757d;">
-                                            Desde: <strong><?= htmlspecialchars($egreso['sede_origen_nombre'] ?? 'N/A') ?></strong>
-                                        </small>
                                     <?php else: ?>
                                         <?= htmlspecialchars($egreso['descripcion']) ?>:
                                     <?php endif; ?>

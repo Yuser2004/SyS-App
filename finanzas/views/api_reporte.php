@@ -1,5 +1,4 @@
 <?php
-// finanzas/views/api_reporte.php
 header('Content-Type: application/json');
 include __DIR__ . '/../models/conexion.php';
 
@@ -44,7 +43,7 @@ $stmt_egresos->execute();
 $total_egresos = $stmt_egresos->get_result()->fetch_assoc()['total'] ?? 0;
 $stmt_egresos->close();
 
-// NUEVO: Gastos de Sede (independientes):
+// Gastos de Sede (independientes):
 $params_gasto = [$fecha_desde, $fecha_hasta];
 $types_gasto = "ss";
 $where_sede_gasto_simple = "";
@@ -100,25 +99,88 @@ foreach ($metodos_pago as $metodo) {
     $stmt->execute();
     $egresos_metodo = $stmt->get_result()->fetch_assoc()['total'] ?? 0;
 
-    // NUEVO: Gastos por método
+    // Gastos por método
+    $params_gasto_metodo = [$metodo, $fecha_desde, $fecha_hasta];
+    $types_gasto_metodo = "sss";
+    if (!empty($sede_id)) {
+        $params_gasto_metodo[] = $sede_id;
+        $types_gasto_metodo .= "i";
+    }
+    // IMPORTANTE: $where_sede_gasto_simple NO LLEVA ALIAS 'g'
     $sql_gasto_m = "SELECT SUM(g.monto) AS total 
                     FROM gastos_sede g
                     WHERE g.metodo_pago = ? AND g.fecha BETWEEN ? AND ? $where_sede_gasto_simple";
     $stmt = $conn->prepare($sql_gasto_m);
-    $stmt->bind_param($types_metodo, ...$params_metodo);
+    $stmt->bind_param($types_gasto_metodo, ...$params_gasto_metodo);
     $stmt->execute();
     $gastos_metodo = $stmt->get_result()->fetch_assoc()['total'] ?? 0;
     
+    // ==========================================================
+    // ¡NUEVA LÓGICA! Obtener desglose de cuentas para transferencias
+    // ==========================================================
+    $cuentas_detalle = [];
+    if ($metodo === 'transferencia') {
+        // 1. Ingresos por 'detalle_pago' (de tabla 'recibos')
+        $sql_ing_detalle = "SELECT SUM(r.valor_servicio) AS total, r.detalle_pago 
+                            FROM recibos r 
+                            LEFT JOIN asesor a ON r.id_asesor = a.id_asesor 
+                            WHERE r.estado = 'completado' AND r.metodo_pago = ? AND r.fecha_tramite BETWEEN ? AND ? $where_sede_recibo_asesor 
+                            AND r.detalle_pago IS NOT NULL
+                            GROUP BY r.detalle_pago";
+        $stmt_d = $conn->prepare($sql_ing_detalle);
+        $stmt_d->bind_param($types_metodo, ...$params_metodo);
+        $stmt_d->execute();
+        $res_d = $stmt_d->get_result();
+        while ($fila_d = $res_d->fetch_assoc()) {
+            $cuentas_detalle[$fila_d['detalle_pago']]['ingresos'] = ($cuentas_detalle[$fila_d['detalle_pago']]['ingresos'] ?? 0) + $fila_d['total'];
+        }
+        $stmt_d->close();
+
+        // 2. Egresos por 'detalle_pago' (de tabla 'egresos')
+        $sql_egr_detalle = "SELECT SUM(e.monto) AS total, e.detalle_pago 
+                            FROM egresos e 
+                            JOIN recibos r ON e.recibo_id = r.id 
+                            LEFT JOIN asesor a ON r.id_asesor = a.id_asesor 
+                            WHERE r.estado = 'completado' AND e.forma_pago = ? AND e.fecha BETWEEN ? AND ? AND e.tipo = 'servicio' $where_sede_recibo_asesor 
+                            AND e.detalle_pago IS NOT NULL
+                            GROUP BY e.detalle_pago";
+        $stmt_d = $conn->prepare($sql_egr_detalle);
+        $stmt_d->bind_param($types_metodo, ...$params_metodo);
+        $stmt_d->execute();
+        $res_d = $stmt_d->get_result();
+        while ($fila_d = $res_d->fetch_assoc()) {
+            $cuentas_detalle[$fila_d['detalle_pago']]['salidas'] = ($cuentas_detalle[$fila_d['detalle_pago']]['salidas'] ?? 0) + $fila_d['total'];
+        }
+        $stmt_d->close();
+
+        // 3. Gastos por 'detalle_pago' (de tabla 'gastos_sede')
+        $sql_gasto_detalle = "SELECT SUM(g.monto) AS total, g.detalle_pago 
+                              FROM gastos_sede g
+                              WHERE g.metodo_pago = ? AND g.fecha BETWEEN ? AND ? $where_sede_gasto_simple 
+                              AND g.detalle_pago IS NOT NULL
+                              GROUP BY g.detalle_pago";
+        $stmt_d = $conn->prepare($sql_gasto_detalle);
+        $stmt_d->bind_param($types_gasto_metodo, ...$params_gasto_metodo);
+        $stmt_d->execute();
+        $res_d = $stmt_d->get_result();
+        while ($fila_d = $res_d->fetch_assoc()) {
+            $cuentas_detalle[$fila_d['detalle_pago']]['salidas'] = ($cuentas_detalle[$fila_d['detalle_pago']]['salidas'] ?? 0) + $fila_d['total'];
+        }
+        $stmt_d->close();
+    }
+    // ==========================================================
+
     $desglose_pagos[$metodo] = [
         'ingresos' => $ingresos_metodo,
         'salidas' => $egresos_metodo + $gastos_metodo, // Salidas = Egresos + Gastos
-        'balance' => $ingresos_metodo - ($egresos_metodo + $gastos_metodo)
+        'balance' => $ingresos_metodo - ($egresos_metodo + $gastos_metodo),
+        'cuentas' => $cuentas_detalle // ¡NUEVO!
     ];
-    $stmt->close();
 }
+$stmt->close(); // Cierra el último $stmt del bucle
 
 // --- 3. DESGLOSE DIARIO (fechas forzadas con DATE()) ---
-// (Actualizado con 3 UNION ALL)
+// ¡LIMPIADO DE CARACTERES INVISIBLES!
 $sql_detalle_diario_base = "
     SELECT fecha, SUM(ingreso) AS ingresos_diarios, SUM(egreso) AS egresos_diarios, SUM(gasto) AS gastos_diarios
     FROM (
@@ -170,12 +232,13 @@ $respuesta = [
     'resumen' => [
         'total_ingresos' => $total_ingresos,
         'total_egresos' => $total_egresos,
-        'total_gastos' => $total_gastos, // Actualizado
-        'utilidad_final' => $utilidad_final, // Actualizado
+        'total_gastos' => $total_gastos,
+        'utilidad_final' => $utilidad_final,
     ],
-    'desglose_pagos' => $desglose_pagos,
+    'desglose_pagos' => $desglose_pagos, // Ahora contiene la sub-info de 'cuentas'
     'detalle' => $resultado_detalle // Contiene 'gastos_diarios'
 ];
 
 echo json_encode($respuesta);
 exit();
+?>

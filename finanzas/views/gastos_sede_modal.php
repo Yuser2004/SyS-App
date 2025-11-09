@@ -94,11 +94,22 @@
 <div id="gasto-sede-modal-overlay">
     <div id="gasto-sede-modal-content">
         <span id="gasto-sede-modal-close">&times;</span>
-        <h2>Registrar Gasto de Sede</h2>
+        <h2>Registrar Gasto</h2>
         
         <form id="form-gasto-sede" enctype="multipart/form-data">
+            
             <input type="hidden" id="gasto-id-sede" name="id_sede">
             
+            <!-- Este campo es la "etiqueta" que querías -->
+            <div class="form-group">
+                <label for="gasto-tipo">Tipo de Gasto</label>
+                <select id="gasto-tipo" name="tipo_gasto" required>
+                    <!-- 'sede' y 'personal' se guardarán en la nueva columna -->
+                    <option value="sede" selected>Gasto de Sede (Operativo)</option> 
+                    <option value="personal">Gasto Personal (Asesor)</option>
+                </select>
+            </div>
+
             <div class="form-group">
                 <label for="gasto-descripcion">Descripción del Gasto</label>
                 <input type="text" id="gasto-descripcion" name="descripcion" required>
@@ -139,13 +150,14 @@
                     <?php endif; ?>
                 </select>
             </div>
+
             <div class="form-group">
                 <label for="gasto-fecha">Fecha del Gasto</label>
                 <input type="date" id="gasto-fecha" name="fecha" required value="<?php echo date('Y-m-d'); ?>">
             </div>
 
             <div class="form-group" id="asesor-search-container">
-                <label for="buscar-asesor-gasto">Asesor que Registra (de la sede)</label>
+                <label for="buscar-asesor-gasto">Asesor que Registra</label>
                 <input type="text" id="buscar-asesor-gasto" autocomplete="off" placeholder="Escribe para buscar...">
                 <input type="hidden" id="id-asesor-gasto" name="id_asesor" required>
                 <div id="asesor-gasto-resultados"></div>

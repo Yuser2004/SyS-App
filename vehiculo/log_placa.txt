@@ -36,3 +36,4 @@ Placa: WEF364 | ID: 0
 Placa: DHQ786 | ID: 0
 Placa: UQQ08C | ID: 0
 Placa: BXC032 | ID: 0
+Placa: 123OIU | ID: 0
