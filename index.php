@@ -1,3 +1,4 @@
+    <?php require_once __DIR__ . '/auth_check.php'; ?>
     <!DOCTYPE html>
     <html lang="es">
     <head>
@@ -102,6 +103,13 @@
                             Caja Diaria
                         </span>
                     </li>
+                    <li class="item-logout"> <!-- Le añadí una clase por si quieres darle un color rojo -->
+                        <span onclick="window.location.href='logout.php'">
+                            <img src="logout.png" alt="Cerrar Sesión" style="width: 40px; height: 40px; margin-right: 8px; vertical-align: middle;">
+                            Cerrar Sesión
+                        </span>
+                    </li>
+
                 </ul>
             </nav>
 

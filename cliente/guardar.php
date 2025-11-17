@@ -1,4 +1,5 @@
     <?php
+    require_once __DIR__ . '/../auth_check.php';
     include __DIR__ . '/models/conexion.php';
     $nombre = trim($_POST['nombre_completo']);
     $documento = trim($_POST['documento']);

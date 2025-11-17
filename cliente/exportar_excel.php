@@ -9,6 +9,7 @@ ob_start(); // Prevenir cualquier salida de texto accidental
 require __DIR__ . '/../vendor/autoload.php'; 
 // Baja de /cliente a /cliente/models/
 include __DIR__ . '/models/conexion.php'; 
+require_once __DIR__ . '/../auth_check.php';
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;

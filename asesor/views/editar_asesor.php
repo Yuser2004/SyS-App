@@ -1,6 +1,6 @@
 <?php
 include __DIR__ . '/../models/conexion.php';
-
+require_once __DIR__ . '/../../auth_check.php';
 $id = intval($_GET['id'] ?? 0);
 $res = $conn->query("SELECT * FROM asesor WHERE id_asesor = $id");
 

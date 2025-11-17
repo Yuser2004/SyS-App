@@ -1,6 +1,6 @@
 <?php
 include __DIR__ . '/../models/conexion.php';
-
+require_once __DIR__ . '/../../auth_check.php';
 // --- 1. Definir parámetros de paginación y búsqueda ---
 $registros_por_pagina = 15; // ¿Cuántos clientes mostrar por página?
 

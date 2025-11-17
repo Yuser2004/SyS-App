@@ -1,5 +1,6 @@
 <?php
 include __DIR__ . '/../models/conexion.php';
+require_once __DIR__ . '/../../auth_check.php';
 
 $id = $_GET['id'];
 $resultado = $conn->query("SELECT * FROM clientes WHERE id_cliente = $id");

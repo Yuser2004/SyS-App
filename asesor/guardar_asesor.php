@@ -1,6 +1,6 @@
 <?php
 include __DIR__ . '/models/conexion.php';
-
+require_once __DIR__ . '/../auth_check.php';
 $id_sede = intval($_POST['id_sede']);
 $nombre = trim($_POST['nombre']);
 $documento = trim($_POST['documento']);

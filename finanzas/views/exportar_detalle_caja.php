@@ -1,6 +1,8 @@
 <?php
 ob_start(); // <-- Inicia el búfer de salida
 // finanzas/views/exportar_detalle_caja.php
+// ¡VERSIÓN 2.0!
+// Añadida la sección "Movimientos Internos" y su lógica a los saldos.
 
 // 1. CARGAR LIBRERÍAS
 require __DIR__ . '/../../vendor/autoload.php';
@@ -15,7 +17,7 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 
-// Forzar que se muestren los errores (¡quitar en producción!)
+// Forzar que se muestren los errores
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
@@ -30,7 +32,7 @@ $stmt_last_fecha = $conn->prepare(
      FROM cierres_caja
      WHERE id_sede = ? 
        AND fecha < ?
-       AND (total_ingresos <> 0 OR total_egresos <> 0 OR conteo_efectivo_cierre <> 0 OR conteo_transferencia_cierre <> 0)"
+       AND (conteo_efectivo_cierre <> 0 OR conteo_transferencia_cierre <> 0)" // Corregido
 );
 $stmt_last_fecha->bind_param("is", $id_sede_seleccionada, $fecha_inicio);
 $stmt_last_fecha->execute();
@@ -65,7 +67,7 @@ if ($fecha_apertura) {
 }
 
 
-// 4. OBTENER DATOS DE DETALLE (Igual que antes, todo en arrays)
+// 4. OBTENER DATOS DE DETALLE (Todo en arrays)
 $sede_nombre = "Sede General";
 $stmt_sede = $conn->prepare("SELECT nombre FROM sedes WHERE id = ?");
 $stmt_sede->bind_param("i", $id_sede_seleccionada);
@@ -102,6 +104,24 @@ $stmt_egresos->execute();
 $egresos_data = $stmt_egresos->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt_egresos->close();
 
+// --- ¡NUEVO! Movimientos Internos ---
+$sql_movimientos = " (SELECT DATE(m.fecha) as fecha, 'Entrada' as tipo, m.monto, m.metodo_pago_destino as metodo, m.detalle_pago_destino as detalle, m.descripcion, s.nombre as sede_relacionada
+                     FROM movimientos_inter_sede m
+                     LEFT JOIN sedes s ON m.id_sede_origen = s.id
+                     WHERE DATE(m.fecha) BETWEEN ? AND ? AND m.id_sede_destino = ?)
+                   UNION ALL
+                     (SELECT DATE(m.fecha) as fecha, 'Salida' as tipo, m.monto, m.metodo_pago_origen as metodo, m.detalle_pago_origen as detalle, m.descripcion, s.nombre as sede_relacionada
+                     FROM movimientos_inter_sede m
+                     LEFT JOIN sedes s ON m.id_sede_destino = s.id
+                     WHERE DATE(m.fecha) BETWEEN ? AND ? AND m.id_sede_origen = ?)
+                   ORDER BY fecha ASC";
+$stmt_mov = $conn->prepare($sql_movimientos);
+$stmt_mov->bind_param("ssissi", $fecha_inicio, $fecha_fin, $id_sede_seleccionada, $fecha_inicio, $fecha_fin, $id_sede_seleccionada);
+$stmt_mov->execute();
+$movimientos_data = $stmt_mov->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt_mov->close();
+// --- FIN NUEVO ---
+
 // --- Cierres ---
 $sql_cierres = "
     SELECT fecha, saldo_final, conteo_efectivo_cierre, conteo_transferencia_cierre, diferencia, notas
@@ -125,7 +145,7 @@ $spreadsheet = new Spreadsheet();
 $sheet = $spreadsheet->getActiveSheet();
 $sheet->setTitle('Informe Cronológico');
 
-// --- (Definición de Estilos) ---
+// --- (Definición de Estilos - Sin cambios) ---
 $currency_format = '$#,##0';
 $style_borde_fino = ['borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']]]];
 $style_borde_grueso_inf = ['borders' => ['bottom' => ['borderStyle' => Border::BORDER_THICK, 'color' => ['rgb' => '000000']]]];
@@ -237,15 +257,21 @@ $end_date = new DateTime($fecha_fin);
 $end_date->modify('+1 day');
 $interval = new DatePeriod($start_date, new DateInterval('P1D'), $end_date);
 
-$row_num = 5; // Empezamos a pintar desde la fila 5 (dejamos espacio para el resumen)
+$row_num = 5; // Empezamos a pintar desde la fila 5
 
 foreach ($interval as $date_obj) {
     $current_date_str = $date_obj->format('Y-m-d');
     
+    // Reseteamos totales diarios
     $total_ingresos_dia_efectivo = 0;
     $total_ingresos_dia_bancos = 0;
     $total_egresos_dia_efectivo = 0;
     $total_egresos_dia_bancos = 0;
+    // --- ¡NUEVO! Totales de movimientos ---
+    $total_mov_in_efectivo = 0;
+    $total_mov_in_bancos = 0;
+    $total_mov_out_efectivo = 0;
+    $total_mov_out_bancos = 0;
 
     // --- 1. CABECERA DEL DÍA Y SALDO INICIAL ---
     $sheet->mergeCells("A{$row_num}:F{$row_num}");
@@ -405,26 +431,122 @@ foreach ($interval as $date_obj) {
     $sheet->getStyle("D{$row_num}:E{$row_num}")->getNumberFormat()->setFormatCode($currency_format);
     $row_num++;
     $row_num++; // Espaciador
+    
 
-    // --- 4. CIERRE DEL DÍA ---
+    // --- 4. ¡NUEVO! MOVIMIENTOS INTERNOS DEL DÍA ---
+    $sheet->setCellValue('A' . $row_num, 'MOVIMIENTOS INTERNOS');
+    $sheet->getStyle('A' . $row_num)->applyFromArray($style_fuente_negrita);
+    $row_num++;
+    $sheet->setCellValue('A' . $row_num, 'FECHA');
+    $sheet->setCellValue('B' . $row_num, 'TIPO');
+    $sheet->setCellValue('C' . $row_num, 'DESCRIPCIÓN');
+    $sheet->setCellValue('D' . $row_num, 'EFECTIVO');
+    $sheet->setCellValue('E' . $row_num, 'BANCOS');
+    $sheet->setCellValue('F' . $row_num, 'CUENTA/DETALLE');
+    $sheet->getStyle("A{$row_num}:F{$row_num}")->applyFromArray($style_header_tabla);
+    $row_num++;
+
+    $movimientos_del_dia = array_filter($movimientos_data, function($mov) use ($current_date_str) {
+        return $mov['fecha'] == $current_date_str;
+    });
+
+    if (empty($movimientos_del_dia)) {
+        $sheet->mergeCells("A{$row_num}:F{$row_num}");
+        $sheet->setCellValue("A{$row_num}", "No se registraron movimientos internos este día.");
+        $sheet->getStyle("A{$row_num}:F{$row_num}")->applyFromArray($style_celda_datos);
+        $row_num++;
+    } else {
+        foreach ($movimientos_del_dia as $fila) {
+            $sheet->setCellValue('A' . $row_num, $fila['fecha']);
+            $sheet->setCellValue('B' . $row_num, $fila['tipo']);
+            $desc = $fila['descripcion'] . ' (Sede: ' . ($fila['sede_relacionada'] ?? 'N/A') . ')';
+            $sheet->setCellValue('C' . $row_num, $desc);
+            
+            $monto = (float)$fila['monto'];
+            $cuenta = $fila['detalle'] ?? $fila['metodo'];
+            
+            if ($fila['tipo'] == 'Entrada') {
+                if ($fila['metodo'] == 'efectivo') {
+                    $sheet->setCellValue('D' . $row_num, $monto);
+                    $total_mov_in_efectivo += $monto;
+                } else {
+                    $sheet->setCellValue('E' . $row_num, $monto);
+                    $sheet->setCellValue('F' . $row_num, $cuenta);
+                    $total_mov_in_bancos += $monto;
+                    // Actualizar saldo cuenta
+                    if (!isset($saldos_por_cuenta[$cuenta])) $saldos_por_cuenta[$cuenta] = 0.0;
+                    $saldos_por_cuenta[$cuenta] += $monto; // SUMAR
+                }
+            } else { // 'Salida'
+                if ($fila['metodo'] == 'efectivo') {
+                    $sheet->setCellValue('D' . $row_num, -$monto); // Salida en negativo
+                    $total_mov_out_efectivo += $monto;
+                } else {
+                    $sheet->setCellValue('E' . $row_num, -$monto); // Salida en negativo
+                    $sheet->setCellValue('F' . $row_num, $cuenta);
+                    $total_mov_out_bancos += $monto;
+                    // Actualizar saldo cuenta
+                    if (!isset($saldos_por_cuenta[$cuenta])) $saldos_por_cuenta[$cuenta] = 0.0;
+                    $saldos_por_cuenta[$cuenta] -= $monto; // RESTAR
+                }
+            }
+            $sheet->getStyle("A{$row_num}:F{$row_num}")->applyFromArray($style_celda_datos);
+            $sheet->getStyle("D{$row_num}:E{$row_num}")->getNumberFormat()->setFormatCode($currency_format);
+            $row_num++;
+        }
+    }
+    // Total Movimientos Día
+    $sheet->mergeCells("A{$row_num}:C{$row_num}");
+    $sheet->setCellValue("A{$row_num}", "Total Entradas Internas del Día:");
+    $sheet->setCellValue('D' . $row_num, $total_mov_in_efectivo);
+    $sheet->setCellValue('E' . $row_num, $total_mov_in_bancos);
+    $sheet->getStyle("A{$row_num}:F{$row_num}")->applyFromArray($style_total_dia);
+    $sheet->getStyle("D{$row_num}:E{$row_num}")->getNumberFormat()->setFormatCode($currency_format);
+    $row_num++;
+
+    $sheet->mergeCells("A{$row_num}:C{$row_num}");
+    $sheet->setCellValue("A{$row_num}", "Total Salidas Internas del Día:");
+    $sheet->setCellValue('D' . $row_num, -$total_mov_out_efectivo);
+    $sheet->setCellValue('E' . $row_num, -$total_mov_out_bancos);
+    $sheet->getStyle("A{$row_num}:F{$row_num}")->applyFromArray($style_total_dia);
+    $sheet->getStyle("D{$row_num}:E{$row_num}")->getNumberFormat()->setFormatCode($currency_format);
+    $row_num++;
+    $row_num++; // Espaciador
+    // --- FIN NUEVA SECCIÓN ---
+
+
+    // --- 5. CIERRE DEL DÍA ---
     $sheet->mergeCells("A{$row_num}:F{$row_num}");
     $sheet->setCellValue("A{$row_num}", "CIERRE DEL DÍA: " . $date_obj->format('d/m/Y'));
     $sheet->getStyle("A{$row_num}:F{$row_num}")->applyFromArray($style_header_dia);
     $sheet->getStyle("A{$row_num}:F{$row_num}")->getFill()->getStartColor()->setRGB('00B050'); // Verde
     $row_num++;
 
+    // --- ¡MODIFICADO! Cálculo de saldo esperado ahora incluye movimientos ---
+    $saldo_esperado_efectivo_dia = $saldo_efectivo_dia_siguiente + $total_ingresos_dia_efectivo - $total_egresos_dia_efectivo + $total_mov_in_efectivo - $total_mov_out_efectivo;
+    
+    $saldo_esperado_transferencia_dia = 0.0;
+    foreach($saldos_por_cuenta as $monto) {
+        $saldo_esperado_transferencia_dia += $monto;
+    }
+    $saldo_esperado_total_dia = $saldo_esperado_efectivo_dia + $saldo_esperado_transferencia_dia;
+
+
     if (isset($cierres_data[$current_date_str])) {
         $cierre = $cierres_data[$current_date_str];
         $conteo_registrado_efectivo = (float)$cierre['conteo_efectivo_cierre'];
         $conteo_registrado_transferencia = (float)$cierre['conteo_transferencia_cierre'];
         $conteo_registrado_total = $conteo_registrado_efectivo + $conteo_registrado_transferencia;
-        $diferencia = (float)$cierre['diferencia'];
+        
+        // ¡CUIDADO! La diferencia en la BD puede ser incorrecta si no incluía movimientos.
+        // La recalculamos aquí para el Excel.
+        $diferencia_calculada = $conteo_registrado_total - $saldo_esperado_total_dia;
 
-        // Saldo Esperado
+        // Saldo Esperado (Calculado)
         $sheet->mergeCells("A{$row_num}:E{$row_num}");
-        $sheet->setCellValue("A{$row_num}", "Saldo Esperado:");
+        $sheet->setCellValue("A{$row_num}", "Saldo Esperado (Calculado):");
         $sheet->getStyle("A{$row_num}:E{$row_num}")->applyFromArray($style_cierre_label);
-        $sheet->setCellValue("F{$row_num}", (float)$cierre['saldo_final']);
+        $sheet->setCellValue("F{$row_num}", $saldo_esperado_total_dia);
         $sheet->getStyle("F{$row_num}")->applyFromArray($style_cierre_valor);
         $sheet->getStyle("F{$row_num}")->getNumberFormat()->setFormatCode($currency_format);
         $row_num++;
@@ -440,11 +562,11 @@ foreach ($interval as $date_obj) {
         
         // Diferencia de Caja
         $sheet->mergeCells("A{$row_num}:E{$row_num}");
-        $sheet->setCellValue("A{$row_num}", "Diferencia de Caja:");
+        $sheet->setCellValue("A{$row_num}", "Diferencia de Caja (Calculada):");
         $sheet->getStyle("A{$row_num}:E{$row_num}")->applyFromArray($style_cierre_label);
-        $sheet->setCellValue("F{$row_num}", $diferencia);
-        if ($diferencia < 0) $sheet->getStyle("F{$row_num}")->applyFromArray($style_diferencia_negativa);
-        else if ($diferencia > 0) $sheet->getStyle("F{$row_num}")->applyFromArray($style_diferencia_positiva);
+        $sheet->setCellValue("F{$row_num}", $diferencia_calculada);
+        if ($diferencia_calculada < 0) $sheet->getStyle("F{$row_num}")->applyFromArray($style_diferencia_negativa);
+        else if ($diferencia_calculada > 0) $sheet->getStyle("F{$row_num}")->applyFromArray($style_diferencia_positiva);
         else $sheet->getStyle("F{$row_num}")->applyFromArray($style_cierre_valor);
         $sheet->getStyle("F{$row_num}")->getNumberFormat()->setFormatCode($currency_format);
         $row_num++;
@@ -456,8 +578,12 @@ foreach ($interval as $date_obj) {
         $sheet->getRowDimension($row_num)->setRowHeight(40);
         $row_num++;
 
-        // *** CÓDIGO ELIMINADO ***
-        // Ya no reseteamos los saldos aquí.
+        // Asignamos los CONTEOS del cierre como el saldo inicial del próximo día
+        $saldo_efectivo_dia_siguiente = $conteo_registrado_efectivo;
+        
+        // Reseteamos saldos por cuenta y asignamos el total de transferencia
+        $saldos_por_cuenta = []; 
+        $saldos_por_cuenta['Saldo Cierre Anterior'] = $conteo_registrado_transferencia;
 
     } else {
         // No hay cierre
@@ -466,25 +592,25 @@ foreach ($interval as $date_obj) {
         $sheet->getStyle("A{$row_num}:F{$row_num}")->applyFromArray($style_no_cierre);
         $row_num++;
 
-        // *** CÓDIGO ELIMINADO DE AQUÍ ***
+        // Si no hubo cierre, el saldo del próximo día es el SALDO ESPERADO de este día
+        $saldo_efectivo_dia_siguiente = $saldo_esperado_efectivo_dia;
+        // Los saldos por cuenta ya se actualizaron, así que se arrastran
     }
-    // ACTUALIZAR SALDOS CALCULADOS (SIEMPRE)
-    $saldo_efectivo_dia_siguiente = $saldo_efectivo_dia_siguiente + $total_ingresos_dia_efectivo - $total_egresos_dia_efectivo;
-    // Los saldos por cuenta ya se actualizaron con ingresos/egresos, no hay que hacer nada.
 
     $sheet->getStyle("A".($row_num-1).":F".($row_num-1))->applyFromArray($style_borde_grueso_inf);
     $row_num++;
 } 
 
 
-// --- SECCIÓN 6: RESUMEN FINAL EN LA PARTE SUPERIOR (NUEVO) ---
+// --- SECCIÓN 6: RESUMEN FINAL EN LA PARTE SUPERIOR (MODIFICADO) ---
+// Esta sección ahora es DINÁMICA y se basa en los saldos finales calculados.
 $resumen_row = 1;
 $sheet->mergeCells("H{$resumen_row}:I{$resumen_row}");
 $sheet->setCellValue("H{$resumen_row}", "RESUMEN DE CAJA FINAL");
 $sheet->getStyle("H{$resumen_row}:I{$resumen_row}")->applyFromArray($style_resumen_header);
 $resumen_row++;
 
-// Efectivo
+// Efectivo Final (es el último $saldo_efectivo_dia_siguiente calculado)
 $sheet->setCellValue("H{$resumen_row}", "CAJA EFECTIVO:");
 $sheet->getStyle("H{$resumen_row}")->applyFromArray($style_resumen_label);
 $sheet->setCellValue("I{$resumen_row}", $saldo_efectivo_dia_siguiente);
@@ -492,7 +618,7 @@ $sheet->getStyle("I{$resumen_row}")->applyFromArray($style_resumen_valor);
 $sheet->getStyle("I{$resumen_row}")->getNumberFormat()->setFormatCode($currency_format);
 $resumen_row++;
 
-// Transferencia Total
+// Transferencia Total Final
 $saldo_transferencia_final_total = 0.0;
 foreach($saldos_por_cuenta as $monto) {
     $saldo_transferencia_final_total += $monto;
@@ -504,7 +630,7 @@ $sheet->getStyle("I{$resumen_row}")->applyFromArray($style_resumen_valor);
 $sheet->getStyle("I{$resumen_row}")->getNumberFormat()->setFormatCode($currency_format);
 $resumen_row++;
 
-// Desglose de Cuentas
+// Desglose de Cuentas Final
 foreach ($saldos_por_cuenta as $cuenta => $monto) {
     if ($monto == 0) continue; // No mostrar saldos en cero
     $sheet->setCellValue("H{$resumen_row}", $cuenta . ":");
@@ -528,7 +654,7 @@ $sheet->getStyle("I{$resumen_row}")->getNumberFormat()->setFormatCode($currency_
 
 // --- Ajustar anchos de columna (Incluyendo el resumen) ---
 $sheet->getColumnDimension('A')->setWidth(15); // Fecha
-$sheet->getColumnDimension('B')->setWidth(12); // Recibo No
+$sheet->getColumnDimension('B')->setWidth(15); // Recibo No / Tipo
 $sheet->getColumnDimension('C')->setWidth(45); // Descripción (más ancha)
 $sheet->getColumnDimension('D')->setWidth(20); // Efectivo
 $sheet->getColumnDimension('E')->setWidth(20); // Bancos

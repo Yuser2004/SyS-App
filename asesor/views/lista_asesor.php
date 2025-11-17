@@ -1,5 +1,6 @@
 <?php
 include __DIR__ . '/../models/conexion.php';
+require_once __DIR__ . '/../../auth_check.php';
 $asesores = $conn->query("
     SELECT a.id_asesor, a.nombre, s.nombre AS nombre_sede
     FROM asesor a

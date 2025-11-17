@@ -1,5 +1,6 @@
 <?php
 include __DIR__ . '/models/conexion.php';
+require_once __DIR__ . '/../auth_check.php';
 
 $q = $_GET['q'] ?? '';
 $q = $conn->real_escape_string($q);

@@ -1,5 +1,6 @@
 <?php
 include 'models/conexion.php';
+require_once __DIR__ . '/../auth_check.php';
 
 $documento = $_GET['documento'];
 $id_actual = isset($_GET['id']) ? $_GET['id'] : 0;

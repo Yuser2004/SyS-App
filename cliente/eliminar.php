@@ -1,6 +1,6 @@
 <?php
 include 'models/conexion.php';
-
+require_once __DIR__ . '/../auth_check.php';
 if (isset($_GET['id'])) {
     $id = intval($_GET['id']);
 
