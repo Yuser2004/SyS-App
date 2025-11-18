@@ -1,6 +1,4 @@
 <link rel="stylesheet" href="cliente/public/css/estilos_form.css">
-require_once __DIR__ . '/../../auth_check.php';
-
 <div class="login-form">
     <h1>Agregar Cliente</h1>
     <form id="form-crear">
